@@ -1,0 +1,13 @@
+{
+  "name": "lagioconda-public",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": {},
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^0.9.0"
+  },
+  "scripts":{
+    "start":"http-server"
+  }
+}
