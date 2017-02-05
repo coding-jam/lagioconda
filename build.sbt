@@ -13,3 +13,4 @@ libraryDependencies ++= Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test
 )
 
+//compile in Compile <<= (compile in Compile).dependsOn(scalafmt)
