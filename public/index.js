@@ -1,5 +1,5 @@
 ((scope) => {
-  const ws = new scope.WebSocket('wss://echo.websocket.org')
+  const ws = new scope.WebSocket('ws://localhost:9000/updates')
 
   let count = 0
 
