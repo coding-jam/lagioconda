@@ -9,6 +9,8 @@
     const img = document.getElementById('img' + (count % 4))
 
     img.src = `data:image/jpeg;base64,${data.image}`
+
+    count = count + 1
   }
 
   const onopen = (event) => {
