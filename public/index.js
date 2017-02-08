@@ -1,5 +1,5 @@
 ((scope) => {
-  const ws = new scope.WebSocket('wss://echo.websocket.org')
+  const ws = new scope.WebSocket('ws://localhost:9000/updates')
 
   let count = 0
 
@@ -9,6 +9,8 @@
     const img = document.getElementById('img' + (count % 4))
 
     img.src = `data:image/jpeg;base64,${data.image}`
+
+    count = count + 1
   }
 
   const onopen = (event) => {
