@@ -18,3 +18,7 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-mocha" % "1.1.0")
 addSbtPlugin("org.irundaia.sbt" % "sbt-sassify" % "1.4.6")
 
 addSbtPlugin("com.geirsson" % "sbt-scalafmt" % "0.5.5")
+
+addSbtPlugin("org.bytedeco" % "sbt-javacpp" % "1.9")
+
+addSbtPlugin("org.bytedeco" % "sbt-javacv" % "1.12")
