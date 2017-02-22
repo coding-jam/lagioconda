@@ -20,7 +20,13 @@
   ws.onmessage = onmessage
   ws.onopen = onopen
 
+var message = {
+  "msg": "start"
+};
+
+
   scope.send = () => {
-    ws.send('DUMMY')
+    //ws.send('Start')
+    ws.send(JSON.stringify(message));
   }
 })(window)
