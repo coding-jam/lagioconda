@@ -87,6 +87,7 @@ package object conversions {
       }
 
       g2.dispose()
+      image.flush()
 
       image
     }

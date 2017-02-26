@@ -12,7 +12,7 @@ case class Chromosome(genes: List[Gene]) {
         .slice(position + 1, genes.length))
   }
 
-  def crossover(other: Chromosome)(
+  private def crossoverOld(other: Chromosome)(
       implicit crossover: CrossoverPointLike): (Chromosome, Chromosome) = {
     val l: (List[Gene], List[Gene]) = genes
       .zip(other.genes)
@@ -22,6 +22,24 @@ case class Chromosome(genes: List[Gene]) {
       .unzip
 
     (Chromosome(l._1), Chromosome(l._2))
+  }
+
+  def crossover(other: Chromosome)(
+      implicit crossover: CrossoverPointLike): (Chromosome, Chromosome) = {
+    val l = genes
+      .zip(other.genes)
+      .map { case (g1, g2) => shuffle(g1, g2) }
+      .unzip
+
+    (Chromosome(l._1), Chromosome(l._2))
+  }
+
+  private def shuffle(g1: Gene, g2: Gene): (Gene, Gene) = {
+    val b = Random.nextBoolean()
+    if (b)
+      (g1, g2)
+    else
+      (g2, g1)
   }
 
 }

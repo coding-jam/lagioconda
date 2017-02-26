@@ -37,13 +37,15 @@ class SocketActor(out: ActorRef, imageGenerator: ImageGenerator)
 
       }
     case msg @ GenerateAction =>
-      val l = Random.nextInt(2000)
-      if (l < 100) {
-        masterActor.foreach(a => a ! RemoveWeaker)
-      } else if (l < 500) {
-        masterActor.foreach(a => a ! Mutate)
-      } else {
-        masterActor.foreach(a => a ! Crossover)
+      Range(1, 100).foreach { i =>
+        val l = Random.nextInt(2000)
+        if (l < 100) {
+          masterActor.foreach(a => a ! RemoveWeaker)
+        } else if (l < 1500) {
+          masterActor.foreach(a => a ! Mutate)
+        } else {
+          masterActor.foreach(a => a ! Crossover)
+        }
       }
 
     case PopulationGenerated =>

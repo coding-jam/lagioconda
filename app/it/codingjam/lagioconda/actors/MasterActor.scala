@@ -39,10 +39,12 @@ class MasterActor(out: ActorRef) extends Actor {
         val child =
           context.actorOf(IndividualActor.props(c), name = "individual" + i)
         val im = c.toBufferedImage
-        val fitness = comparator.fitness(im.toMat)
+        val mat = im.toMat
+        val fitness = comparator.fitness(mat)
+        mat.release()
+        mat._deallocate()
 
         val individual = IndividualState(child, fitness)
-        println("Generate individual" + individual)
         state = state.addIndividual(individual).reverseSort
         val oldBest = best
         best = state.population.headOption
@@ -52,7 +54,7 @@ class MasterActor(out: ActorRef) extends Actor {
       }
       generated = 500
 
-      println(f"Initial Mean fitnes: ${state.meanFitness}%1.6f")
+      println(f"Initial Mean fitness: ${state.meanFitness}%1.6f")
       sender() ! PopulationGenerated
 
     case MasterActor.Mutate =>
@@ -74,8 +76,8 @@ class MasterActor(out: ActorRef) extends Actor {
         }
       }
       n = n + 1
-      if (n % 10 == 0)
-        println(f"Mean fitnes: ${state.meanFitness}%1.6f")
+      if (n % 50 == 0)
+        println(f"Mean fitness: ${state.meanFitness}%1.6f")
 
     case MasterActor.Crossover =>
       val first = state.randomIndividual.actorRef
@@ -84,7 +86,10 @@ class MasterActor(out: ActorRef) extends Actor {
 
     case msg: NewIndividual =>
       val im = msg.chromosome.toBufferedImage
-      val fitness = comparator.fitness(im.toMat)
+      val mat = im.toMat
+      val fitness = comparator.fitness(mat)
+      mat.release()
+      mat._deallocate()
 
       generated = generated + 1
       val child =
@@ -98,14 +103,17 @@ class MasterActor(out: ActorRef) extends Actor {
       // new best
       best.foreach { b =>
         if (state.population.head.fitness > b.fitness) {
-          println("!!!new best!!!")
+
           best = state.population.headOption
-          best.foreach(b => b.actorRef ! SendImage(out))
+          best.foreach { b =>
+            b.actorRef ! SendImage(out)
+            println(f"!!!new best!!! ${b.fitness}%1.6f")
+          }
         }
       }
       n = n + 1
       if (n % 10 == 0)
-        println(f"Mean fitnes: ${state.meanFitness}%1.6f")
+        println(f"Mean fitness: ${state.meanFitness}%1.6f")
 
     case MasterActor.RemoveWeaker =>
       val initialSize = state.population.size

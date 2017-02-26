@@ -14,3 +14,10 @@ libraryDependencies ++= Seq(
 )
 
 //compile in Compile <<= (compile in Compile).dependsOn(scalafmt)
+
+// fork a new JVM for 'test:run', but not 'run'
+fork in run := true
+
+
+
+javaOptions in run += "-XX:+HeapDumpOnOutOfMemoryError"
