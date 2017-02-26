@@ -3,7 +3,7 @@ package it.codingjam.lagioconda.ga
 import scala.util.Random
 
 case class Chromosome(genes: List[Gene]) {
-  require(genes.length == 150)
+  require(genes.length == Chromosome.numberOfGenes)
 
   def mutate: Chromosome = {
     val position = Random.nextInt(genes.size)
@@ -41,5 +41,11 @@ case class Chromosome(genes: List[Gene]) {
     else
       (g2, g1)
   }
+
+}
+
+object Chromosome {
+
+  val numberOfGenes = 100
 
 }
