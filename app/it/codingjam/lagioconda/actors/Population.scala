@@ -22,7 +22,7 @@ case class Population(individuals: List[IndividualState]) {
 
     Range(0, steps).foreach { step =>
       val r = Random.nextInt(200)
-      if (r < 20) {
+      if (r < 40) {
         // Mutation
         val chromosome = randomIndividual.chromosome.mutate
         val im = chromosome.toBufferedImage
@@ -55,10 +55,10 @@ case class Population(individuals: List[IndividualState]) {
     Population(l.take(1000))
   }
 
-  private def randomIndividual: IndividualState =
+  def randomIndividual: IndividualState =
     individuals(Random.nextInt(individuals.size))
 
-  private def randomIndividualByWeight: IndividualState = {
+  def randomIndividualByWeight: IndividualState = {
     val total = individuals.size * (individuals.size + 1) / 2
     var r = Random.nextInt(total)
     var x = individuals.size
@@ -66,10 +66,16 @@ case class Population(individuals: List[IndividualState]) {
       r = r - x
       x = x - 1
     }
-    individuals(individuals.size - x - 1)
+    val position = individuals.size - x - 1
+    individuals(if (position >= 0) position else 0)
   }
 
   def meanFitness: Double = individuals.map(_.fitness).sum / individuals.size
+
+  def addIndividuals(list: List[IndividualState]) = {
+    Population(
+      (this.individuals ++ list).sorted(Ordering[IndividualState]).reverse)
+  }
 
 }
 

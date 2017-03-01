@@ -4,7 +4,12 @@ import java.io.{ByteArrayOutputStream, File}
 import javax.imageio.ImageIO
 
 import akka.actor.{Actor, ActorRef, Props}
-import it.codingjam.lagioconda.actors.PopulationActor.SetupPopulation
+import it.codingjam.lagioconda.actors.PopulationActor.{
+  MigrationDone,
+  Migration,
+  Migrate,
+  SetupPopulation
+}
 import it.codingjam.lagioconda.actors.SocketActor.{
   GenerationRan,
   PopulationGenerated
@@ -22,6 +27,7 @@ class PopulationActor(out: ActorRef) extends Actor {
   var state = Population(List[IndividualState]())
   var generated = 0
   var n = 0
+  var index = -1
 
   val file = new File("resources/monalisa.jpg")
   val reference = imread(file.getAbsolutePath, IMREAD_COLOR)
@@ -33,28 +39,52 @@ class PopulationActor(out: ActorRef) extends Actor {
   var best: Option[IndividualState] = None
 
   override def receive: Receive = {
-    case a @ SetupPopulation =>
+    case cmd: SetupPopulation =>
       state = Population.randomGeneration()
+      index = cmd.index
       best = state.individuals.headOption
       best.foreach(updateUI(_))
 
       println(f"Initial Mean fitness: ${state.meanFitness}%1.6f")
-      sender() ! PopulationGenerated
+      sender() ! PopulationGenerated(cmd.index)
 
-    case PopulationActor.RunAGeneration =>
+    case cmd: PopulationActor.RunAGeneration =>
       val oldBest = best
       state = state.runAGeneration
-      println(f"Mean fitness: ${state.meanFitness}%1.6f")
+      println(f"Mean fitness (${cmd.index}): ${state.meanFitness}%1.6f")
       best = state.individuals.headOption
       best.foreach { b =>
         oldBest.foreach { old =>
           if (b.fitness > old.fitness) {
             updateUI(b)
-            println(f"New best!!: ${b.fitness}%1.6f")
+            println(f"New best (${cmd.index})!!: ${b.fitness}%1.6f")
           }
         }
       }
-      sender() ! GenerationRan
+      sender() ! GenerationRan(cmd.index)
+
+    case cmd: Migrate =>
+      val l = Range(0, cmd.number).map(_ => state.randomIndividual).toList
+      cmd.otherPopulation ! Migration(l)
+      sender ! MigrationDone(index)
+
+    case cmd: Migration =>
+      val oldFitness = state.meanFitness
+      val oldBest = best
+      state = state.addIndividuals(cmd.list)
+      println(
+        f"Mean fitness after migration (${index}): ${state.meanFitness}%1.6f (was ${oldFitness}%1.6f)")
+      best = state.individuals.headOption
+      best.foreach { b =>
+        oldBest.foreach { old =>
+          if (b.fitness > old.fitness) {
+            updateUI(b)
+            println(
+              f"New best after migration (${index})!!: ${b.fitness}%1.6f")
+          }
+        }
+      }
+
   }
 
   def updateUI(b: IndividualState): Unit = {
@@ -72,14 +102,20 @@ object PopulationActor {
 
   def props(out: ActorRef) = Props(new PopulationActor(out))
 
-  case object SetupPopulation
+  case class SetupPopulation(index: Int)
 
-  case object Mutate
+  case class Mutate(index: Int)
 
-  case object Crossover
+  case class Crossover(index: Int)
 
-  case object RemoveWeaker
+  case class RemoveWeaker(index: Int)
 
-  case object RunAGeneration
+  case class RunAGeneration(index: Int)
+
+  case class Migrate(index: Int, number: Int, otherPopulation: ActorRef)
+
+  case class Migration(list: List[IndividualState])
+
+  case class MigrationDone(index: Int)
 
 }
