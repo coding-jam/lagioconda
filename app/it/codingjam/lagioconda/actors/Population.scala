@@ -16,13 +16,13 @@ case class Population(individuals: List[IndividualState]) {
   def runAGeneration()(implicit fitnessFunction: FitnessFunction,
                        dimension: ImageDimensions,
                        crossover: CrossoverPointLike): Population = {
-    val steps = individuals.size / 2
+    val steps = individuals.size
 
-    var newIndividuals = individuals
+    var newIndividuals = List[IndividualState]()
 
     Range(0, steps).foreach { step =>
-      val r = Random.nextInt(200)
-      if (r < 40) {
+      val r = Random.nextInt(100)
+      if (r < 5) {
         // Mutation
         val chromosome = randomIndividual.chromosome.mutate
         val im = chromosome.toBufferedImage
@@ -52,14 +52,14 @@ case class Population(individuals: List[IndividualState]) {
       }
     }
     val l = newIndividuals.sorted(Ordering[IndividualState]).reverse
-    Population(l.take(1000))
+    Population(l.take(2000))
   }
 
   def randomIndividual: IndividualState =
     individuals(Random.nextInt(individuals.size))
 
   def randomIndividualByWeight: IndividualState = {
-    val total = individuals.size * (individuals.size + 1) / 2
+    val total = (individuals.size * (individuals.size + 1)) / 2
     var r = Random.nextInt(total)
     var x = individuals.size
     while (r > 0) {
@@ -83,7 +83,7 @@ object Population {
 
   def randomGeneration()(implicit fitnessFunction: FitnessFunction,
                          dimension: ImageDimensions): Population = {
-    val initialPopulation = 500
+    val initialPopulation = 1000
     var list: List[IndividualState] = List()
 
     Range(0, initialPopulation).foreach { i =>

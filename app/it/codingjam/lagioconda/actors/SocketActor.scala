@@ -32,7 +32,7 @@ class SocketActor(out: ActorRef, imageGenerator: ImageGenerator)
     case msg: InEvent =>
       println("CMD" + msg)
       if (populationActors.isEmpty) {
-        Range(0, 8).foreach { i =>
+        Range(0, 4).foreach { i =>
           val a =
             context.actorOf(PopulationActor
                               .props(out)
@@ -44,7 +44,7 @@ class SocketActor(out: ActorRef, imageGenerator: ImageGenerator)
       }
 
     case msg: GenerationRan =>
-      if (Random.nextInt(100) < 20) {
+      if (Random.nextInt(100) < 5) {
         val r = Random.nextInt(populationActors.size)
         val destination =
           if (r == msg.index)
