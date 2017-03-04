@@ -36,7 +36,7 @@ class IndividualActor(chromosome: Chromosome)(implicit dimensions: ImageDimensio
 
     case cmd: DoCrossover =>
       val newChromosomes: (Chromosome, Chromosome) =
-        state.crossover(cmd.chromosome)
+        state.fullCrossover(cmd.chromosome)
       cmd.replyTo ! NewIndividual(newChromosomes._1)
       cmd.replyTo ! NewIndividual(newChromosomes._2)
 

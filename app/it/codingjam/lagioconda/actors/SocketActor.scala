@@ -33,14 +33,14 @@ class SocketActor(out: ActorRef, imageGenerator: ImageGenerator) extends Actor w
       }
 
     case msg: GenerationRan =>
-      if (Random.nextInt(100) < 5) {
+      if (Random.nextInt(1000) < 1) {
         val r = Random.nextInt(populationActors.size)
         val destination =
           if (r == msg.index)
             (r + 1) % populationActors.size
           else
             r
-        populationActors(msg.index) ! PopulationActor.Migrate(msg.index, 50, populationActors(destination))
+        populationActors(msg.index) ! PopulationActor.Migrate(msg.index, Population.Size / 20, populationActors(destination))
       } else
         populationActors(msg.index) ! PopulationActor.RunAGeneration(msg.index)
 

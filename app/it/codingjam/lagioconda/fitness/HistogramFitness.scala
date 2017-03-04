@@ -12,7 +12,7 @@ class HistogramFitness(val baseImage: Mat) extends FitnessFunction {
   private val baseHistogram = histogram.getHistogram(baseImage)
 
   def fitness(image: Mat): Double = {
-    val inputH = histogram.getHistogram(image)
+    val inputH: Mat = histogram.getHistogram(image)
     val v = compareHist(baseHistogram, inputH, HISTCMP_INTERSECT)
     v / (image.cols() * image.rows())
 

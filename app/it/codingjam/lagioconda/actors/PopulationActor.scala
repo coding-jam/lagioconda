@@ -16,7 +16,7 @@ import org.bytedeco.javacpp.opencv_imgcodecs._
 
 class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
 
-  var state = Population(List[IndividualState]())
+  var state = Population(0, List[IndividualState]())
   var generated = 0
   var n = 0
   var index = -1
@@ -41,15 +41,20 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
       sender() ! PopulationGenerated(cmd.index)
 
     case cmd: PopulationActor.RunAGeneration =>
+      val oldFitness = state.meanFitness
       val oldBest = best
       state = state.runAGeneration
-      log.debug("Mean fitness for population {} is {}", cmd.index, format(state.meanFitness))
+      log.debug("Mean fitness for population {}@{} is {}, {}",
+                cmd.index,
+                state.generation,
+                format(state.meanFitness),
+                compareFitnesses(oldFitness, state.meanFitness))
       best = state.individuals.headOption
       best.foreach { b =>
         oldBest.foreach { old =>
           if (b.fitness > old.fitness) {
             updateUI(b)
-            log.debug("New best for population {} is {}", cmd.index, format(b.fitness))
+            log.debug("New best for population {}@{} is {}", cmd.index, state.generation, format(b.fitness))
           }
         }
       }
@@ -64,17 +69,23 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
       val oldFitness = state.meanFitness
       val oldBest = best
       state = state.addIndividuals(cmd.list)
-      log.debug("Mean fitness after migration for population {} is {}", index, format(state.meanFitness))
+      log.debug("Mean fitness after migration for population {}@{} is {}", index, state.generation, format(state.meanFitness))
       best = state.individuals.headOption
       best.foreach { b =>
         oldBest.foreach { old =>
           if (b.fitness > old.fitness) {
             updateUI(b)
-            log.debug("New best after migration for population {} is {}", index, format(b.fitness))
+            log.debug("New best after migration for population {}@{} is {}", index, state.generation, format(b.fitness))
           }
         }
       }
 
+  }
+
+  private def compareFitnesses(a: Double, b: Double) = {
+    if (a < b) "+"
+    else if (a > b) "-"
+    else "="
   }
 
   private def format(d: Double) = f"$d%1.5f"

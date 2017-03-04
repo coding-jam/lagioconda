@@ -72,10 +72,7 @@ package object conversions {
         val transparent = new java.awt.Color(circle.color.red, circle.color.blue, circle.color.green, circle.color.alpha)
         g2.setColor(transparent)
         g2.fill(
-          new Ellipse2D.Float(circle.center.x - circle.radius,
-                              circle.center.y - circle.radius,
-                              circle.center.x + circle.radius,
-                              circle.center.y + circle.radius))
+          new Ellipse2D.Float(circle.center.x - circle.radius, circle.center.y - circle.radius, circle.radius * 2, circle.radius * 2))
       }
 
       g2.dispose()
