@@ -21,23 +21,14 @@ class ImageGenerator {
 
     // g2.setPaint(gp)
 
-    val qualityHints = new RenderingHints(RenderingHints.KEY_ANTIALIASING,
-                                          RenderingHints.VALUE_ANTIALIAS_ON)
-    qualityHints.put(RenderingHints.KEY_RENDERING,
-                     RenderingHints.VALUE_RENDER_QUALITY)
+    val qualityHints = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+    qualityHints.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY)
     g2.setRenderingHints(qualityHints)
 
     Range(1, 100).foreach { i =>
-      val transparent = new Color(Random.nextInt(256),
-                                  Random.nextInt(256),
-                                  Random.nextInt(256),
-                                  100)
+      val transparent = new Color(Random.nextInt(256), Random.nextInt(256), Random.nextInt(256), 100)
       g2.setColor(transparent)
-      g2.fill(
-        new Ellipse2D.Float(Random.nextInt(width),
-                            Random.nextInt(height),
-                            Random.nextInt(500),
-                            Random.nextInt(500)))
+      g2.fill(new Ellipse2D.Float(Random.nextInt(width), Random.nextInt(height), Random.nextInt(500), Random.nextInt(500)))
     }
 
     g2.dispose()

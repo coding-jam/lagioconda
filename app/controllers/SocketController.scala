@@ -10,9 +10,7 @@ import play.api.libs.streams.ActorFlow
 import play.api.mvc.{Controller, WebSocket}
 import it.codingjam.lagioconda.protocol.Messages.messageFlowTransformer
 
-class SocketController @Inject()(imageGenerator: ImageGenerator)(
-    implicit system: ActorSystem,
-    materializer: Materializer)
+class SocketController @Inject()(imageGenerator: ImageGenerator)(implicit system: ActorSystem, materializer: Materializer)
     extends Controller {
 
   def socket = WebSocket.accept[InEvent, OutEvent] { request =>
