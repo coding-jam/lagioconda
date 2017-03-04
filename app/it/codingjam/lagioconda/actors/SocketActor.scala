@@ -1,26 +1,15 @@
 package it.codingjam.lagioconda.actors
 
-import akka.actor.{Props, Actor, ActorRef}
-import it.codingjam.lagioconda.actors.PopulationActor.{
-  MigrationDone,
-  Mutate,
-  RemoveWeaker,
-  SetupPopulation,
-  Crossover
-}
-import it.codingjam.lagioconda.actors.SocketActor.{
-  GenerationRan,
-  PopulationGenerated,
-  GenerateAction
-}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+import it.codingjam.lagioconda.actors.PopulationActor.{MigrationDone, SetupPopulation}
+import it.codingjam.lagioconda.actors.SocketActor.{GenerationRan, PopulationGenerated}
 import it.codingjam.lagioconda.protocol.InEvent
-import it.codingjam.lagioconda.protocol.Messages.{Start, Individual}
+import it.codingjam.lagioconda.protocol.Messages.Start
 import it.codingjam.lagioconda.services.ImageGenerator
-import scala.concurrent.duration._
+
 import scala.util.Random
 
-class SocketActor(out: ActorRef, imageGenerator: ImageGenerator)
-    extends Actor {
+class SocketActor(out: ActorRef, imageGenerator: ImageGenerator) extends Actor with ActorLogging {
 
   implicit val executor = context.system.dispatcher
 
@@ -30,7 +19,7 @@ class SocketActor(out: ActorRef, imageGenerator: ImageGenerator)
 
   def receive = {
     case msg: InEvent =>
-      println("CMD" + msg)
+      log.info("Starting generation")
       if (populationActors.isEmpty) {
         Range(0, 4).foreach { i =>
           val a =
@@ -51,10 +40,7 @@ class SocketActor(out: ActorRef, imageGenerator: ImageGenerator)
             (r + 1) % populationActors.size
           else
             r
-        populationActors(msg.index) ! PopulationActor.Migrate(
-          msg.index,
-          50,
-          populationActors(destination))
+        populationActors(msg.index) ! PopulationActor.Migrate(msg.index, 50, populationActors(destination))
       } else
         populationActors(msg.index) ! PopulationActor.RunAGeneration(msg.index)
 
@@ -75,4 +61,5 @@ object SocketActor {
   case class PopulationGenerated(index: Int)
 
   case class GenerationRan(index: Int)
+
 }

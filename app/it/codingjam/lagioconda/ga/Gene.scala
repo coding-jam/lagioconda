@@ -6,8 +6,7 @@ case class Gene(binaryString: String) {
 
   private def flip(s: Char) = if (s == '1') "0" else "1"
 
-  def crossover(other: Gene)(
-      implicit crossover: CrossoverPointLike): (Gene, Gene) = {
+  def crossover(other: Gene)(implicit crossover: CrossoverPointLike): (Gene, Gene) = {
     require(binaryString.length == other.binaryString.length)
     val cp = crossover.crossoverPoint(binaryString.length)
     val newGene1 = binaryString.substring(0, cp) + other.binaryString

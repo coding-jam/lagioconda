@@ -17,9 +17,11 @@ libraryDependencies ++= Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test
 )
 
-libraryDependencies += "org.bytedeco" % "javacv-platform" % "1.3.1"
+libraryDependencies ++= Seq(
+  "org.bytedeco" % "javacv-platform" % "1.3.1",
+  "ch.qos.logback" % "logback-classic" % "1.1.3"
+)
 
 //compile in Compile <<= (compile in Compile).dependsOn(scalafmt)
-
 
 javaOptions ++= Seq("-Xmx4g")

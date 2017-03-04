@@ -3,17 +3,9 @@ package it.codingjam.lagioconda.actors
 import java.io.{ByteArrayOutputStream, File}
 import javax.imageio.ImageIO
 
-import akka.actor.{Actor, ActorRef, Props}
-import it.codingjam.lagioconda.actors.PopulationActor.{
-  MigrationDone,
-  Migration,
-  Migrate,
-  SetupPopulation
-}
-import it.codingjam.lagioconda.actors.SocketActor.{
-  GenerationRan,
-  PopulationGenerated
-}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+import it.codingjam.lagioconda.actors.PopulationActor.{Migrate, Migration, MigrationDone, SetupPopulation}
+import it.codingjam.lagioconda.actors.SocketActor.{GenerationRan, PopulationGenerated}
 import it.codingjam.lagioconda.conversions._
 import it.codingjam.lagioconda.domain.ImageDimensions
 import it.codingjam.lagioconda.fitness.HistogramFitness
@@ -22,14 +14,14 @@ import it.codingjam.lagioconda.protocol.Messages.Individual
 import org.apache.commons.codec.binary.Base64OutputStream
 import org.bytedeco.javacpp.opencv_imgcodecs._
 
-class PopulationActor(out: ActorRef) extends Actor {
+class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
 
   var state = Population(List[IndividualState]())
   var generated = 0
   var n = 0
   var index = -1
 
-  val file = new File("resources/monalisa.jpg")
+  val file = new File("resources/monalisasmall.png")
   val reference = imread(file.getAbsolutePath, IMREAD_COLOR)
 
   implicit val fitnessFunction = new HistogramFitness(reference)
@@ -45,19 +37,19 @@ class PopulationActor(out: ActorRef) extends Actor {
       best = state.individuals.headOption
       best.foreach(updateUI(_))
 
-      println(f"Initial Mean fitness: ${state.meanFitness}%1.6f")
+      log.debug("Initial Mean fitness {}", format(state.meanFitness))
       sender() ! PopulationGenerated(cmd.index)
 
     case cmd: PopulationActor.RunAGeneration =>
       val oldBest = best
       state = state.runAGeneration
-      println(f"Mean fitness (${cmd.index}): ${state.meanFitness}%1.6f")
+      log.debug("Mean fitness for population {} is {}", cmd.index, format(state.meanFitness))
       best = state.individuals.headOption
       best.foreach { b =>
         oldBest.foreach { old =>
           if (b.fitness > old.fitness) {
             updateUI(b)
-            println(f"New best (${cmd.index})!!: ${b.fitness}%1.6f")
+            log.debug("New best for population {} is {}", cmd.index, format(b.fitness))
           }
         }
       }
@@ -72,20 +64,20 @@ class PopulationActor(out: ActorRef) extends Actor {
       val oldFitness = state.meanFitness
       val oldBest = best
       state = state.addIndividuals(cmd.list)
-      println(
-        f"Mean fitness after migration (${index}): ${state.meanFitness}%1.6f (was ${oldFitness}%1.6f)")
+      log.debug("Mean fitness after migration for population {} is {}", index, format(state.meanFitness))
       best = state.individuals.headOption
       best.foreach { b =>
         oldBest.foreach { old =>
           if (b.fitness > old.fitness) {
             updateUI(b)
-            println(
-              f"New best after migration (${index})!!: ${b.fitness}%1.6f")
+            log.debug("New best after migration for population {} is {}", index, format(b.fitness))
           }
         }
       }
 
   }
+
+  private def format(d: Double) = f"$d%1.5f"
 
   def updateUI(b: IndividualState): Unit = {
     val bi = b.chromosome.toBufferedImage()

@@ -11,9 +11,7 @@ import it.codingjam.lagioconda.ga.{RandomCrossoverPoint, Chromosome}
 import it.codingjam.lagioconda.protocol.Messages.Individual
 import org.apache.commons.codec.binary.Base64OutputStream
 
-class IndividualActor(chromosome: Chromosome)(
-    implicit dimensions: ImageDimensions)
-    extends Actor {
+class IndividualActor(chromosome: Chromosome)(implicit dimensions: ImageDimensions) extends Actor {
 
   implicit val crossover = new RandomCrossoverPoint
 

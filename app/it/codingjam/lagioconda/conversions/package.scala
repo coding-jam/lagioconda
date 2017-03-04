@@ -57,27 +57,19 @@ package object conversions {
 
   implicit class ChromosomeToBufferedImage(chromosome: Chromosome) {
 
-    def toBufferedImage()(
-        implicit dimensions: ImageDimensions): BufferedImage = {
+    def toBufferedImage()(implicit dimensions: ImageDimensions): BufferedImage = {
       val circles: List[Circle] = chromosome.genes.map(_.toCircle)
 
-      val image = new BufferedImage(dimensions.width,
-                                    dimensions.height,
-                                    BufferedImage.TYPE_INT_ARGB);
+      val image = new BufferedImage(dimensions.width, dimensions.height, BufferedImage.TYPE_INT_ARGB);
 
       val g2 = image.createGraphics()
 
-      val qualityHints = new RenderingHints(RenderingHints.KEY_ANTIALIASING,
-                                            RenderingHints.VALUE_ANTIALIAS_ON)
-      qualityHints.put(RenderingHints.KEY_RENDERING,
-                       RenderingHints.VALUE_RENDER_QUALITY)
+      val qualityHints = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+      qualityHints.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY)
       g2.setRenderingHints(qualityHints)
 
       circles.foreach { circle =>
-        val transparent = new java.awt.Color(circle.color.red,
-                                             circle.color.blue,
-                                             circle.color.green,
-                                             circle.color.alpha)
+        val transparent = new java.awt.Color(circle.color.red, circle.color.blue, circle.color.green, circle.color.alpha)
         g2.setColor(transparent)
         g2.fill(
           new Ellipse2D.Float(circle.center.x - circle.radius,

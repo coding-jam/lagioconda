@@ -10,7 +10,7 @@ class ConversionsTests extends WordSpecLike with MustMatchers {
 
     val sampleCircle = Circle(Center(100, 300), 10, Color(120, 10, 30, 100))
 
-      Gene("00011001000100101100000000101001111000000010100001111001100100")
+    Gene("00011001000100101100000000101001111000000010100001111001100100")
 
     "convert a Circle to a Gene" in {
       val gene: Gene = sampleCircle.toGene
