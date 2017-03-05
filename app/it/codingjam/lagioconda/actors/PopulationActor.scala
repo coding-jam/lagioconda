@@ -9,7 +9,7 @@ import it.codingjam.lagioconda.actors.SocketActor.{GenerationRan, PopulationGene
 import it.codingjam.lagioconda.conversions._
 import it.codingjam.lagioconda.domain.ImageDimensions
 import it.codingjam.lagioconda.fitness.HistogramFitness
-import it.codingjam.lagioconda.ga.RandomCrossoverPoint
+import it.codingjam.lagioconda.ga.{RandomCrossoverPoint, RandomMutationPoint}
 import it.codingjam.lagioconda.protocol.Messages.Individual
 import org.apache.commons.codec.binary.Base64OutputStream
 import org.bytedeco.javacpp.opencv_imgcodecs._
@@ -27,6 +27,7 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
   implicit val fitnessFunction = new HistogramFitness(reference)
   implicit val dimension = ImageDimensions(reference.cols(), reference.rows())
   implicit val crossover = new RandomCrossoverPoint
+  implicit val mutation = new RandomMutationPoint
 
   var best: Option[IndividualState] = None
 
