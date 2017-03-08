@@ -83,6 +83,34 @@ package object conversions {
 
   }
 
+  implicit class ChromosomeToMat(chromosome: Chromosome) {
+
+    private[this] def withColorOf(circle: Circle)(f: Color => Unit) = {
+      f(circle.color)
+    }
+
+    def toMat()(implicit dimensions: ImageDimensions): Mat = {
+      val circles: List[Circle] = chromosome.genes.map(_.toCircle)
+
+      val mat = new Mat(dimensions.width, dimensions.height, CV_8UC3)
+      val background = new Scalar(255, 255, 255, 0)
+
+      mat.put(background)
+
+      circles.foreach { c =>
+        val overlay = new Mat(dimensions.width, dimensions.height, CV_8UC3)
+        mat.copyTo(overlay)
+        withColorOf(c) { color =>
+          val foreground = new Scalar(color.blue, color.green, color.red, 0)
+          val alpha = color.alpha
+          circle(overlay, new Point(c.center.x, c.center.y), c.radius, foreground, FILLED, CV_AA, 0)
+          addWeighted(overlay, alpha, mat, 1 - alpha, 0, mat)
+        }
+      }
+      mat
+    }
+  }
+
   implicit class BufferedImageToMat(bi: BufferedImage) {
     def toMat: Mat = {
       val raster = bi.getRaster()
