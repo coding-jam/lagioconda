@@ -12,6 +12,6 @@ Then at root folder type
 
 ```sbt run```
 
-Open a browser at http://localhost:9000. When the page is downloaded, algorithm start.
+Open a browser at http://localhost:9000. When the page is downloaded, algorithm starts.
  
 
