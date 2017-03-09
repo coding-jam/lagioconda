@@ -6,11 +6,19 @@
   const onmessage = (event) => {
     const data = JSON.parse(event.data)
 
-    const img = document.getElementById('img' + (count % 4))
+    if (data.msg === "Individual"){
 
-    img.src = `data:image/jpeg;base64,${data.image}`
+      const img = document.getElementById('img' + (count % 4))
 
-    count = count + 1
+      img.src = `data:image/jpeg;base64,${data.image}`
+
+      count = count + 1
+    }
+    if (data.msg === "Statistics") {
+        const statistics = document.getElementById('statistics')
+        statistics.innerHTML = data.message
+    }
+
   }
 
   const onopen = (event) => {

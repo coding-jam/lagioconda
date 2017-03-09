@@ -1,10 +1,12 @@
 package it.codingjam.lagioconda.actors
 
+import java.util.Date
+
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import it.codingjam.lagioconda.actors.PopulationActor.{MigrationDone, SetupPopulation}
 import it.codingjam.lagioconda.actors.SocketActor._
 import it.codingjam.lagioconda.protocol.InEvent
-import it.codingjam.lagioconda.protocol.Messages.Start
+import it.codingjam.lagioconda.protocol.Messages.{Start, Statistics}
 import it.codingjam.lagioconda.services.ImageGenerator
 
 import scala.util.Random
@@ -65,7 +67,11 @@ class SocketActor(out: ActorRef, imageGenerator: ImageGenerator) extends Actor w
     case msg @ PrintStatistics =>
       val rate = (generationCounter - oldGenerationCounter) / (statisticsRate.toDouble)
       oldGenerationCounter = generationCounter
-      log.info(s"Rate: Generation/s = ${rate}")
+      val s = s"Rate: Generation/s = ${rate}"
+      val t = (new Date).toString + "<br/>" + s
+
+      log.info(s)
+      out ! Statistics(t)
 
     case other =>
       log.error(s"This must not happen $other")
