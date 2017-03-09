@@ -25,7 +25,7 @@ case class Population(generation: Int, individuals: List[IndividualState]) {
       if (r < 5) {
         // Mutation
         val chromosome = worstIndividuals.randomIndividual.chromosome.mutate(3)
-        val fitness = fitnessFunction.fitness(chromosome.toMat)
+        val fitness = fitnessFunction.fitness(chromosome)
         newIndividuals = newIndividuals :+ IndividualState(chromosome, fitness)
       } else {
 
@@ -36,11 +36,7 @@ case class Population(generation: Int, individuals: List[IndividualState]) {
         val newChromosomes: (Chromosome, Chromosome) = c1.onePointCrossover(c2)
         val list = List(newChromosomes._1, newChromosomes._2)
         list.foreach { c =>
-          val mat = c.toMat
-          val fitness = fitnessFunction.fitness(mat)
-          mat.release()
-          mat._deallocate()
-
+          val fitness = fitnessFunction.fitness(c)
           val individual = IndividualState(c, fitness)
           newIndividuals = newIndividuals :+ individual
         }
@@ -104,7 +100,7 @@ case class Population(generation: Int, individuals: List[IndividualState]) {
 
     Range(0, 10).foreach { i =>
       val neighbour = hillClimber.chromosome.neighbour(r)
-      val fitness = fitnessFunction.fitness(neighbour.toMat)
+      val fitness = fitnessFunction.fitness(neighbour)
       if (fitness > hillClimber.fitness) {
         hillClimber = IndividualState(neighbour, fitness)
       }
@@ -130,10 +126,7 @@ object Population {
 
     Range(0, Size).foreach { i =>
       val c: Chromosome = RandomChromosome.generate()
-      val mat = c.toMat
-      val fitness = fitnessFunction.fitness(mat)
-      mat.release()
-      mat._deallocate()
+      val fitness = fitnessFunction.fitness(c)
       val individual = IndividualState(c, fitness)
       list = list :+ individual
     }

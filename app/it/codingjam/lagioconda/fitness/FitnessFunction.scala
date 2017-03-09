@@ -1,8 +1,8 @@
 package it.codingjam.lagioconda.fitness
 
-import org.bytedeco.javacpp.opencv_core.Mat
+import it.codingjam.lagioconda.ga.Chromosome
 
 trait FitnessFunction {
 
-  def fitness(image: Mat): Double
+  def fitness(chromosome: Chromosome): Double
 }
