@@ -1,5 +1,6 @@
 package it.codingjam.lagioconda.actors
 
+import java.awt.image.{BufferedImage, DataBufferByte, DataBufferInt}
 import java.io.{ByteArrayOutputStream, File}
 import javax.imageio.ImageIO
 
@@ -8,25 +9,33 @@ import it.codingjam.lagioconda.actors.PopulationActor.{Migrate, Migration, Migra
 import it.codingjam.lagioconda.actors.SocketActor.{GenerationRan, PopulationGenerated}
 import it.codingjam.lagioconda.conversions._
 import it.codingjam.lagioconda.domain.ImageDimensions
-import it.codingjam.lagioconda.fitness.HistogramFitness
-import it.codingjam.lagioconda.ga.RandomCrossoverPoint
+import it.codingjam.lagioconda.fitness.{ByteComparisonFitness, HistogramFitness}
+import it.codingjam.lagioconda.ga.{RandomCrossoverPoint, RandomMutationPoint}
 import it.codingjam.lagioconda.protocol.Messages.Individual
 import org.apache.commons.codec.binary.Base64OutputStream
 import org.bytedeco.javacpp.opencv_imgcodecs._
 
 class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
 
-  var state = Population(List[IndividualState]())
+  var state = Population(0, List[IndividualState]())
   var generated = 0
   var n = 0
   var index = -1
 
   val file = new File("resources/monalisasmall.png")
-  val reference = imread(file.getAbsolutePath, IMREAD_COLOR)
+  //val reference = imread(file.getAbsolutePath, IMREAD_COLOR)
 
-  implicit val fitnessFunction = new HistogramFitness(reference)
-  implicit val dimension = ImageDimensions(reference.cols(), reference.rows())
+  val reference = ImageIO.read(file)
+
+  val convertedImg = new BufferedImage(reference.getWidth(), reference.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+  reference.getGraphics().drawImage(convertedImg, 0, 0, null)
+
+  val referenceInByte = reference.getRaster().getDataBuffer().asInstanceOf[DataBufferByte].getData()
+
+  implicit val dimension = ImageDimensions(reference.getWidth, reference.getHeight)
+  implicit val fitnessFunction = new ByteComparisonFitness(referenceInByte)
   implicit val crossover = new RandomCrossoverPoint
+  implicit val mutation = new RandomMutationPoint
 
   var best: Option[IndividualState] = None
 
@@ -38,22 +47,27 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
       best.foreach(updateUI(_))
 
       log.debug("Initial Mean fitness {}", format(state.meanFitness))
-      sender() ! PopulationGenerated(cmd.index)
+      sender() ! PopulationGenerated(cmd.index, state.generation)
 
     case cmd: PopulationActor.RunAGeneration =>
+      val oldFitness = state.meanFitness
       val oldBest = best
       state = state.runAGeneration
-      log.debug("Mean fitness for population {} is {}", cmd.index, format(state.meanFitness))
+      log.debug("Mean fitness for population {}@{} is {}, {}",
+                cmd.index,
+                state.generation,
+                format(state.meanFitness),
+                compareFitnesses(oldFitness, state.meanFitness))
       best = state.individuals.headOption
       best.foreach { b =>
         oldBest.foreach { old =>
           if (b.fitness > old.fitness) {
             updateUI(b)
-            log.debug("New best for population {} is {}", cmd.index, format(b.fitness))
+            log.debug("New best for population {}@{} is {}", cmd.index, state.generation, format(b.fitness))
           }
         }
       }
-      sender() ! GenerationRan(cmd.index)
+      sender() ! GenerationRan(cmd.index, state.generation)
 
     case cmd: Migrate =>
       val l = Range(0, cmd.number).map(_ => state.randomIndividual).toList
@@ -64,17 +78,23 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
       val oldFitness = state.meanFitness
       val oldBest = best
       state = state.addIndividuals(cmd.list)
-      log.debug("Mean fitness after migration for population {} is {}", index, format(state.meanFitness))
+      log.debug("Mean fitness after migration for population {}@{} is {}", index, state.generation, format(state.meanFitness))
       best = state.individuals.headOption
       best.foreach { b =>
         oldBest.foreach { old =>
           if (b.fitness > old.fitness) {
             updateUI(b)
-            log.debug("New best after migration for population {} is {}", index, format(b.fitness))
+            log.debug("New best after migration for population {}@{} is {}", index, state.generation, format(b.fitness))
           }
         }
       }
 
+  }
+
+  private def compareFitnesses(a: Double, b: Double) = {
+    if (a < b) "+"
+    else if (a > b) "-"
+    else "="
   }
 
   private def format(d: Double) = f"$d%1.5f"

@@ -1,6 +1,6 @@
 package it.codingjam.lagioconda
 
-import java.awt.{RenderingHints}
+import java.awt.{Graphics2D, RenderingHints}
 import java.awt.geom.Ellipse2D
 import java.awt.image.{BufferedImage, DataBufferInt}
 import java.nio.{ByteBuffer, IntBuffer}
@@ -60,22 +60,19 @@ package object conversions {
     def toBufferedImage()(implicit dimensions: ImageDimensions): BufferedImage = {
       val circles: List[Circle] = chromosome.genes.map(_.toCircle)
 
-      val image = new BufferedImage(dimensions.width, dimensions.height, BufferedImage.TYPE_INT_ARGB);
+      val image = new BufferedImage(dimensions.width, dimensions.height, BufferedImage.TYPE_3BYTE_BGR);
 
-      val g2 = image.createGraphics()
+      val g2: Graphics2D = image.createGraphics()
 
       val qualityHints = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-      qualityHints.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY)
+      qualityHints.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED)
       g2.setRenderingHints(qualityHints)
 
       circles.foreach { circle =>
         val transparent = new java.awt.Color(circle.color.red, circle.color.blue, circle.color.green, circle.color.alpha)
         g2.setColor(transparent)
         g2.fill(
-          new Ellipse2D.Float(circle.center.x - circle.radius,
-                              circle.center.y - circle.radius,
-                              circle.center.x + circle.radius,
-                              circle.center.y + circle.radius))
+          new Ellipse2D.Float(circle.center.x - circle.radius, circle.center.y - circle.radius, circle.radius * 2, circle.radius * 2))
       }
 
       g2.dispose()
@@ -84,6 +81,40 @@ package object conversions {
       image
     }
 
+  }
+
+  implicit class ChromosomeToMat(chromosome: Chromosome) {
+
+    private[this] def withColorOf(circle: Circle)(f: Color => Unit) = {
+      f(circle.color)
+    }
+
+    private[this] def zeroIfNeg(n: Int) = if (n < 0) 0 else n
+
+    def toMat2()(implicit dimensions: ImageDimensions): Mat = {
+      val circles: List[Circle] = chromosome.genes.map(_.toCircle)
+
+      val mat = new Mat(dimensions.width, dimensions.height, CV_8UC3)
+      val background = new Scalar(255, 255, 255, 0)
+
+      mat.put(background)
+
+      circles.foreach { c =>
+        val overlay = new Mat(c.radius, c.radius, CV_8UC3)
+
+        mat
+          .adjustROI(zeroIfNeg(c.center.x - c.radius), zeroIfNeg(c.center.y - c.radius), zeroIfNeg(c.radius * 2), zeroIfNeg(c.radius * 2))
+          .copyTo(overlay)
+
+        withColorOf(c) { color =>
+          val foreground = new Scalar(color.blue, color.green, color.red, 0)
+          val alpha = color.alpha
+          circle(overlay, new Point(c.radius, c.radius), c.radius, foreground, FILLED, CV_AA, 0)
+          addWeighted(overlay, alpha, mat, 1 - alpha, 0, mat)
+        }
+      }
+      mat
+    }
   }
 
   implicit class BufferedImageToMat(bi: BufferedImage) {
