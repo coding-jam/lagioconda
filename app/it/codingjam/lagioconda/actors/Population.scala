@@ -1,6 +1,5 @@
 package it.codingjam.lagioconda.actors
 
-import it.codingjam.lagioconda.conversions._
 import it.codingjam.lagioconda.domain.ImageDimensions
 import it.codingjam.lagioconda.fitness.FitnessFunction
 import it.codingjam.lagioconda.ga.{Chromosome, CrossoverPointLike, MutationPointLike, RandomChromosome}
@@ -118,7 +117,7 @@ case class Population(generation: Int, individuals: List[IndividualState]) {
 
 object Population {
 
-  val Size = 200
+  val Size = 100
 
   def randomGeneration()(implicit fitnessFunction: FitnessFunction, dimension: ImageDimensions): Population = {
 

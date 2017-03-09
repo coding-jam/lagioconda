@@ -14,12 +14,16 @@ class ByteComparisonFitness(val baseImage: Array[Byte])(implicit dimension: Imag
     val imageInByte: Array[Byte] = bi.getRaster().getDataBuffer().asInstanceOf[DataBufferByte].getData()
 
     var sum = 0
-    0.to(imageInByte.length - 1).foreach { i =>
+    var i = 0
+
+    while (i < imageInByte.length) {
       if (baseImage(i) > imageInByte(i))
         sum += (baseImage(i) - imageInByte(i))
       else
         sum += (imageInByte(i) - baseImage(i))
+      i = i + 1
     }
+
     1 - (sum.toDouble / (baseImage.length * 256))
   }
 }

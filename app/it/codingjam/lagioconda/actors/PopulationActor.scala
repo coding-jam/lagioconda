@@ -47,7 +47,7 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
       best.foreach(updateUI(_))
 
       log.debug("Initial Mean fitness {}", format(state.meanFitness))
-      sender() ! PopulationGenerated(cmd.index)
+      sender() ! PopulationGenerated(cmd.index, state.generation)
 
     case cmd: PopulationActor.RunAGeneration =>
       val oldFitness = state.meanFitness
@@ -67,7 +67,7 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
           }
         }
       }
-      sender() ! GenerationRan(cmd.index)
+      sender() ! GenerationRan(cmd.index, state.generation)
 
     case cmd: Migrate =>
       val l = Range(0, cmd.number).map(_ => state.randomIndividual).toList
