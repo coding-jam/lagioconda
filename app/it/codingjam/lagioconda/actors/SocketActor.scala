@@ -1,5 +1,7 @@
 package it.codingjam.lagioconda.actors
 
+import java.time.temporal.TemporalUnit
+import java.time.{Instant, LocalDateTime, Period}
 import java.util.Date
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
@@ -8,6 +10,7 @@ import it.codingjam.lagioconda.actors.SocketActor._
 import it.codingjam.lagioconda.protocol.InEvent
 import it.codingjam.lagioconda.protocol.Messages.{Start, Statistics}
 import it.codingjam.lagioconda.services.ImageGenerator
+import java.time.{Duration => JavaDuration}
 
 import scala.util.Random
 import scala.concurrent.duration._
@@ -16,13 +19,14 @@ class SocketActor(out: ActorRef, imageGenerator: ImageGenerator) extends Actor w
 
   implicit val executor = context.system.dispatcher
 
-  val MaxPopulation = 10
+  val MaxPopulation = 6
 
   var populationActors: List[ActorRef] = List()
   var generationCounter = 0
   var oldGenerationCounter = 0
   val statisticsRate = 10
 
+  val startedAt: Instant = Instant.now()
   self ! Start(0)
 
   context.system.scheduler.schedule(5.seconds, statisticsRate.seconds, self, PrintStatistics)
@@ -67,14 +71,20 @@ class SocketActor(out: ActorRef, imageGenerator: ImageGenerator) extends Actor w
     case msg @ PrintStatistics =>
       val rate = (generationCounter - oldGenerationCounter) / (statisticsRate.toDouble)
       oldGenerationCounter = generationCounter
-      val s = s"Rate: Generation/s = ${rate}"
-      val t = (new Date).toString + "<br/>" + s
-
-      log.info(s)
-      out ! Statistics(t)
+      val output = List(
+        s"Rate: Generation/s = ${rate}",
+        timeDifference()
+      ).mkString("<br/>")
+      out ! Statistics(output)
 
     case other =>
       log.error(s"This must not happen $other")
+  }
+
+  def timeDifference(): String = {
+    val d = JavaDuration.between(Instant.now, startedAt)
+    val u = List(d.getSeconds)
+    u.mkString(" ")
   }
 }
 

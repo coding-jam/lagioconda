@@ -24,10 +24,15 @@ package object conversions {
       "%010d".format(i.toBinaryString.toInt)
     }
 
+    private def to9bits(i: Int) = {
+      require(i >= 0 && i < 512)
+      "%09d".format(i.toBinaryString.toInt)
+    }
+
     def toGene: Gene = {
       val list = List(
-        to10bits(circle.center.x),
-        to10bits(circle.center.y),
+        to9bits(circle.center.x),
+        to9bits(circle.center.y),
         to8bits(circle.radius),
         to8bits(circle.color.red),
         to8bits(circle.color.green),
@@ -44,13 +49,13 @@ package object conversions {
     private def parse(s: String) = Integer.parseInt(s, 2).toInt
 
     def toCircle: Circle = {
-      val x = parse(gene.binaryString.substring(0, 10))
-      val y = parse(gene.binaryString.substring(10, 20))
-      val radius = parse(gene.binaryString.substring(20, 28))
-      val red = parse(gene.binaryString.substring(28, 36))
-      val green = parse(gene.binaryString.substring(36, 44))
-      val blue = parse(gene.binaryString.substring(44, 52))
-      val alpha = parse(gene.binaryString.substring(52, 60))
+      val x = parse(gene.binaryString.substring(0, 9))
+      val y = parse(gene.binaryString.substring(9, 18))
+      val radius = parse(gene.binaryString.substring(18, 26))
+      val red = parse(gene.binaryString.substring(26, 34))
+      val green = parse(gene.binaryString.substring(34, 42))
+      val blue = parse(gene.binaryString.substring(42, 50))
+      val alpha = parse(gene.binaryString.substring(50, 58))
       Circle(Center(x, y), radius, Color(red, green, blue, alpha))
     }
   }
@@ -82,6 +87,9 @@ package object conversions {
     }
 
   }
+
+
+
 
   implicit class ChromosomeToMat(chromosome: Chromosome) {
 
