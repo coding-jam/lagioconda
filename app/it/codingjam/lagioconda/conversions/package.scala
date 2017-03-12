@@ -36,8 +36,7 @@ package object conversions {
         to8bits(circle.radius),
         to8bits(circle.color.red),
         to8bits(circle.color.green),
-        to8bits(circle.color.blue),
-        to8bits(circle.color.alpha)
+        to8bits(circle.color.blue)
       )
       Gene(list.mkString(""))
     }
@@ -48,21 +47,20 @@ package object conversions {
 
     private def parse(s: String) = Integer.parseInt(s, 2).toInt
 
-    def toCircle: Circle = {
+    def toCircle(implicit alpha: Int): Circle = {
       val x = parse(gene.binaryString.substring(0, 9))
       val y = parse(gene.binaryString.substring(9, 18))
       val radius = parse(gene.binaryString.substring(18, 26))
       val red = parse(gene.binaryString.substring(26, 34))
       val green = parse(gene.binaryString.substring(34, 42))
       val blue = parse(gene.binaryString.substring(42, 50))
-      val alpha = parse(gene.binaryString.substring(50, 58))
       Circle(Center(x, y), radius, Color(red, green, blue, alpha))
     }
   }
 
-  implicit class ChromosomeToBufferedImage(chromosome: Chromosome) {
+  implicit class ChromosomeToBufferedImage(chromosome: Chromosome)(implicit alpha: Int) {
 
-    def toBufferedImage()(implicit dimensions: ImageDimensions): BufferedImage = {
+    def toBufferedImage()(implicit dimensions: ImageDimensions, alpha: Int): BufferedImage = {
       val circles: List[Circle] = chromosome.genes.map(_.toCircle)
 
       val image = new BufferedImage(dimensions.width, dimensions.height, BufferedImage.TYPE_3BYTE_BGR);
@@ -86,43 +84,6 @@ package object conversions {
       image
     }
 
-  }
-
-
-
-
-  implicit class ChromosomeToMat(chromosome: Chromosome) {
-
-    private[this] def withColorOf(circle: Circle)(f: Color => Unit) = {
-      f(circle.color)
-    }
-
-    private[this] def zeroIfNeg(n: Int) = if (n < 0) 0 else n
-
-    def toMat2()(implicit dimensions: ImageDimensions): Mat = {
-      val circles: List[Circle] = chromosome.genes.map(_.toCircle)
-
-      val mat = new Mat(dimensions.width, dimensions.height, CV_8UC3)
-      val background = new Scalar(255, 255, 255, 0)
-
-      mat.put(background)
-
-      circles.foreach { c =>
-        val overlay = new Mat(c.radius, c.radius, CV_8UC3)
-
-        mat
-          .adjustROI(zeroIfNeg(c.center.x - c.radius), zeroIfNeg(c.center.y - c.radius), zeroIfNeg(c.radius * 2), zeroIfNeg(c.radius * 2))
-          .copyTo(overlay)
-
-        withColorOf(c) { color =>
-          val foreground = new Scalar(color.blue, color.green, color.red, 0)
-          val alpha = color.alpha
-          circle(overlay, new Point(c.radius, c.radius), c.radius, foreground, FILLED, CV_AA, 0)
-          addWeighted(overlay, alpha, mat, 1 - alpha, 0, mat)
-        }
-      }
-      mat
-    }
   }
 
   implicit class BufferedImageToMat(bi: BufferedImage) {

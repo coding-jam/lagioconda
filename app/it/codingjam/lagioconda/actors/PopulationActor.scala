@@ -9,7 +9,7 @@ import it.codingjam.lagioconda.actors.PopulationActor.{Migrate, Migration, Migra
 import it.codingjam.lagioconda.actors.SocketActor.{GenerationRan, PopulationGenerated}
 import it.codingjam.lagioconda.conversions._
 import it.codingjam.lagioconda.domain.ImageDimensions
-import it.codingjam.lagioconda.fitness.{ByteComparisonFitness, HistogramFitness}
+import it.codingjam.lagioconda.fitness.ByteComparisonFitness
 import it.codingjam.lagioconda.ga.{RandomCrossoverPoint, RandomMutationPoint}
 import it.codingjam.lagioconda.protocol.Messages.Individual
 import org.apache.commons.codec.binary.Base64OutputStream
@@ -32,6 +32,7 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
 
   val referenceInByte = reference.getRaster().getDataBuffer().asInstanceOf[DataBufferByte].getData()
 
+  implicit val alpha = 128
   implicit val dimension = ImageDimensions(reference.getWidth, reference.getHeight)
   implicit val fitnessFunction = new ByteComparisonFitness(referenceInByte)
   implicit val crossover = new RandomCrossoverPoint
