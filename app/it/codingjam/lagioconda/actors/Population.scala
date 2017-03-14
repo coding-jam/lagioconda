@@ -6,7 +6,7 @@ import it.codingjam.lagioconda.ga.{Chromosome, CrossoverPointLike, MutationPoint
 
 import scala.util.Random
 
-case class Population(generation: Int, individuals: List[IndividualState]) {
+case class Population(generation: Int, individuals: List[IndividualState], trend: String = "") {
 
   def runAGeneration()(implicit fitnessFunction: FitnessFunction,
                        dimension: ImageDimensions,
@@ -17,7 +17,7 @@ case class Population(generation: Int, individuals: List[IndividualState]) {
 
     var newIndividuals = i._1 // start with elite
 
-    Range(0, Population.Size - newIndividuals.size + Population.IncremenBeforeCut).foreach { step =>
+    Range(0, Population.Size - newIndividuals.size + Population.IncrementBeforeCut).foreach { step =>
       val r = Random.nextInt(100)
       if (r < 5) {
         // Mutation
@@ -116,10 +116,10 @@ case class Population(generation: Int, individuals: List[IndividualState]) {
 
 object Population {
 
-  val Size = 100
+  val Size = 40
   val EliteRatio = 20.0 / 100.0
-  val IncremenBeforeCut = 10
-  val NumberOfMutating = 6
+  val IncrementBeforeCut = (Size * 10.0 / 100.0).toInt
+  val NumberOfMutating = 10
 
   def randomGeneration()(implicit fitnessFunction: FitnessFunction, dimension: ImageDimensions): Population = {
 

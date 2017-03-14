@@ -63,15 +63,16 @@ package object conversions {
     def toBufferedImage()(implicit dimensions: ImageDimensions, alpha: Int): BufferedImage = {
       val circles: List[Circle] = chromosome.genes.map(_.toCircle)
 
-      //val image = new BufferedImage(dimensions.width, dimensions.height, BufferedImage.TYPE_3BYTE_BGR);
+      val image = new BufferedImage(dimensions.width, dimensions.height, BufferedImage.TYPE_3BYTE_BGR);
 
-
+      /*
       val ge =
         GraphicsEnvironment.getLocalGraphicsEnvironment();
       val gd = ge.getDefaultScreenDevice();
       val gc = gd.getDefaultConfiguration();
       val image = gc.createCompatibleVolatileImage(16, 16);
       image.validate(gc);
+       */
 
       val g2: Graphics2D = image.createGraphics()
 
@@ -89,7 +90,7 @@ package object conversions {
       g2.dispose()
       image.flush()
 
-      image.getSnapshot
+      image
     }
 
   }

@@ -18,19 +18,18 @@ import org.bytedeco.javacpp.opencv_imgcodecs._
 class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
 
   var state = Population(0, List[IndividualState]())
-  var generated = 0
+  var generation = 0
   var n = 0
   var index = -1
 
   val file = new File("resources/monalisasmall.png")
-  //val reference = imread(file.getAbsolutePath, IMREAD_COLOR)
 
   val reference = ImageIO.read(file)
 
-  val convertedImg = new BufferedImage(reference.getWidth(), reference.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
-  reference.getGraphics().drawImage(convertedImg, 0, 0, null)
+  val convertedImg = new BufferedImage(reference.getWidth(), reference.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+  convertedImg.getGraphics().drawImage(reference, 0, 0, null)
 
-  val referenceInByte = reference.getRaster().getDataBuffer().asInstanceOf[DataBufferByte].getData()
+  val referenceInByte = convertedImg.getRaster().getDataBuffer().asInstanceOf[DataBufferByte].getData()
 
   implicit val alpha = 128
   implicit val dimension = ImageDimensions(reference.getWidth, reference.getHeight)
@@ -98,16 +97,19 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
     else "="
   }
 
-  private def format(d: Double) = f"$d%1.5f"
+  private def format(d: Double) = f"$d%1.3f"
 
   def updateUI(b: IndividualState): Unit = {
     val bi = b.chromosome.toBufferedImage()
-    val os = new ByteArrayOutputStream();
-    val b64 = new Base64OutputStream(os);
+    val os = new ByteArrayOutputStream()
+    val b64 = new Base64OutputStream(os)
 
-    ImageIO.write(bi, "png", b64);
-    val image = os.toString("UTF-8");
-    out ! Individual(0, image)
+    ImageIO.write(bi, "png", b64)
+    val image = os.toString("UTF-8")
+
+    val s = s"Fitness: ${format(b.fitness * 100)}%, generation: ${state.generation}"
+
+    out ! Individual(generation = generation, image = image, population = index, info = s)
   }
 }
 

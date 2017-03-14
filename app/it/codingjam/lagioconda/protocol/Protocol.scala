@@ -38,7 +38,8 @@ object Messages {
     implicit val format = Json.format[Start]
   }
 
-  case class Individual(generation: Int, image: String, msg: String = Individual.identifier) extends OutEvent
+  case class Individual(generation: Int, image: String, msg: String = Individual.identifier, population: Int, info: String)
+      extends OutEvent
 
   object Individual extends JSFormatter {
     implicit val format = Json.format[Individual]

@@ -5,28 +5,46 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>La Gioconda</title>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
-        crossorigin="anonymous">
-    <link rel="icon" href="http://codingjam.it/wp-content/uploads/2016/03/cropped-codingjam-jar-transp-big-512-32x32.png" sizes="32x32">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+          crossorigin="anonymous">
+    <link rel="icon"
+          href="http://codingjam.it/wp-content/uploads/2016/03/cropped-codingjam-jar-transp-big-512-32x32.png"
+          sizes="32x32">
 </head>
 
 <body>
-    <h1>La Gioconda</h1>
-    <span data-status class="lead">Status</span>
-    <button class="btn btn-success" onclick="send()">Ask</button>
-    <div>
-        <img id="img0" />
-        <img id="img1" />
-        <img id="img2" />
-        <img id="img3" />
+<h1>La Gioconda</h1>
+<span data-status class="lead">Status</span>
+<button class="btn btn-success" onclick="send()">Ask</button>
+<div class="row">
+    <div class="col-xs-3">
+        <div><img id="img0"/></div>
+        <div><label id="pop0"/></div>
     </div>
-    <div>
-        <label id="statistics"/>
+    <div class="col-xs-3">
+        <div><img id="img1"/></div>
+        <div><label id="pop1"/></div>
     </div>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+    <div class="col-xs-3">
+        <div><img id="img2"/></div>
+        <div><label id="pop2"/></div>
+    </div>
+    <div class="col-xs-3">
+        <div><img id="img3"/></div>
+        <div><label id="pop3"/></div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-xs-3">
+    <label id="statistics"/>
+    </div>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+        integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
         crossorigin="anonymous"></script>
-    <script src="assets/index.js"></script>
+<script src="assets/index.js"></script>
 </body>
 
 </html>

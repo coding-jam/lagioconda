@@ -8,11 +8,12 @@
 
     if (data.msg === "Individual"){
 
-      const img = document.getElementById('img' + (count % 4))
+      const img = document.getElementById('img' + data.population)
 
       img.src = `data:image/jpeg;base64,${data.image}`
+      const lab = document.getElementById('pop'+ data.population)
+      lab.innerHTML = data.info
 
-      count = count + 1
     }
     if (data.msg === "Statistics") {
         const statistics = document.getElementById('statistics')

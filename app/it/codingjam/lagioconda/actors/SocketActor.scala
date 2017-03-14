@@ -19,7 +19,7 @@ class SocketActor(out: ActorRef, imageGenerator: ImageGenerator) extends Actor w
 
   implicit val executor = context.system.dispatcher
 
-  val MaxPopulation = 6
+  val MaxPopulation = 1
 
   var populationActors: List[ActorRef] = List()
   var generationCounter = 0
@@ -50,7 +50,8 @@ class SocketActor(out: ActorRef, imageGenerator: ImageGenerator) extends Actor w
 
     case msg: GenerationRan =>
       generationCounter += 1
-      if (Random.nextInt(1000) < 1) {
+      /*
+      if (Random.nextInt(10000000000000000) < 1) {
         val r = Random.nextInt(populationActors.size)
         val destination =
           if (r == msg.index)
@@ -58,8 +59,10 @@ class SocketActor(out: ActorRef, imageGenerator: ImageGenerator) extends Actor w
           else
             r
         populationActors(msg.index) ! PopulationActor.Migrate(msg.index, Population.Size / 20, populationActors(destination))
+
       } else
-        populationActors(msg.index) ! PopulationActor.RunAGeneration(msg.index)
+       */
+      populationActors(msg.index) ! PopulationActor.RunAGeneration(msg.index)
 
     case msg: PopulationGenerated =>
       generationCounter += 1
@@ -82,8 +85,9 @@ class SocketActor(out: ActorRef, imageGenerator: ImageGenerator) extends Actor w
   }
 
   def timeDifference(): String = {
-    val d = JavaDuration.between(Instant.now, startedAt)
+    val d = JavaDuration.between(startedAt, Instant.now)
     val u = List(d.getSeconds)
+
     u.mkString(" ")
   }
 }
