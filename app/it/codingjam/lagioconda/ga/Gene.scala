@@ -24,3 +24,7 @@ case class Gene(binaryString: String) {
   }
 
 }
+
+object Gene {
+  val Size = 58
+}

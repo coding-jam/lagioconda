@@ -1,6 +1,6 @@
 package it.codingjam.lagioconda
 
-import java.awt.{Graphics2D, RenderingHints}
+import java.awt.{Graphics2D, GraphicsEnvironment, RenderingHints}
 import java.awt.geom.Ellipse2D
 import java.awt.image.{BufferedImage, DataBufferInt}
 import java.nio.{ByteBuffer, IntBuffer}
@@ -24,15 +24,19 @@ package object conversions {
       "%010d".format(i.toBinaryString.toInt)
     }
 
+    private def to9bits(i: Int) = {
+      require(i >= 0 && i < 512)
+      "%09d".format(i.toBinaryString.toInt)
+    }
+
     def toGene: Gene = {
       val list = List(
-        to10bits(circle.center.x),
-        to10bits(circle.center.y),
+        to9bits(circle.center.x),
+        to9bits(circle.center.y),
         to8bits(circle.radius),
         to8bits(circle.color.red),
         to8bits(circle.color.green),
-        to8bits(circle.color.blue),
-        to8bits(circle.color.alpha)
+        to8bits(circle.color.blue)
       )
       Gene(list.mkString(""))
     }
@@ -43,24 +47,32 @@ package object conversions {
 
     private def parse(s: String) = Integer.parseInt(s, 2).toInt
 
-    def toCircle: Circle = {
-      val x = parse(gene.binaryString.substring(0, 10))
-      val y = parse(gene.binaryString.substring(10, 20))
-      val radius = parse(gene.binaryString.substring(20, 28))
-      val red = parse(gene.binaryString.substring(28, 36))
-      val green = parse(gene.binaryString.substring(36, 44))
-      val blue = parse(gene.binaryString.substring(44, 52))
-      val alpha = parse(gene.binaryString.substring(52, 60))
+    def toCircle(implicit alpha: Int): Circle = {
+      val x = parse(gene.binaryString.substring(0, 9))
+      val y = parse(gene.binaryString.substring(9, 18))
+      val radius = parse(gene.binaryString.substring(18, 26))
+      val red = parse(gene.binaryString.substring(26, 34))
+      val green = parse(gene.binaryString.substring(34, 42))
+      val blue = parse(gene.binaryString.substring(42, 50))
       Circle(Center(x, y), radius, Color(red, green, blue, alpha))
     }
   }
 
-  implicit class ChromosomeToBufferedImage(chromosome: Chromosome) {
+  implicit class ChromosomeToBufferedImage(chromosome: Chromosome)(implicit alpha: Int) {
 
-    def toBufferedImage()(implicit dimensions: ImageDimensions): BufferedImage = {
+    def toBufferedImage()(implicit dimensions: ImageDimensions, alpha: Int): BufferedImage = {
       val circles: List[Circle] = chromosome.genes.map(_.toCircle)
 
       val image = new BufferedImage(dimensions.width, dimensions.height, BufferedImage.TYPE_3BYTE_BGR);
+
+      /*
+      val ge =
+        GraphicsEnvironment.getLocalGraphicsEnvironment();
+      val gd = ge.getDefaultScreenDevice();
+      val gc = gd.getDefaultConfiguration();
+      val image = gc.createCompatibleVolatileImage(16, 16);
+      image.validate(gc);
+       */
 
       val g2: Graphics2D = image.createGraphics()
 
@@ -81,40 +93,6 @@ package object conversions {
       image
     }
 
-  }
-
-  implicit class ChromosomeToMat(chromosome: Chromosome) {
-
-    private[this] def withColorOf(circle: Circle)(f: Color => Unit) = {
-      f(circle.color)
-    }
-
-    private[this] def zeroIfNeg(n: Int) = if (n < 0) 0 else n
-
-    def toMat2()(implicit dimensions: ImageDimensions): Mat = {
-      val circles: List[Circle] = chromosome.genes.map(_.toCircle)
-
-      val mat = new Mat(dimensions.width, dimensions.height, CV_8UC3)
-      val background = new Scalar(255, 255, 255, 0)
-
-      mat.put(background)
-
-      circles.foreach { c =>
-        val overlay = new Mat(c.radius, c.radius, CV_8UC3)
-
-        mat
-          .adjustROI(zeroIfNeg(c.center.x - c.radius), zeroIfNeg(c.center.y - c.radius), zeroIfNeg(c.radius * 2), zeroIfNeg(c.radius * 2))
-          .copyTo(overlay)
-
-        withColorOf(c) { color =>
-          val foreground = new Scalar(color.blue, color.green, color.red, 0)
-          val alpha = color.alpha
-          circle(overlay, new Point(c.radius, c.radius), c.radius, foreground, FILLED, CV_AA, 0)
-          addWeighted(overlay, alpha, mat, 1 - alpha, 0, mat)
-        }
-      }
-      mat
-    }
   }
 
   implicit class BufferedImageToMat(bi: BufferedImage) {

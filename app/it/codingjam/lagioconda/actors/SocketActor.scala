@@ -1,11 +1,16 @@
 package it.codingjam.lagioconda.actors
 
+import java.time.temporal.TemporalUnit
+import java.time.{Instant, LocalDateTime, Period}
+import java.util.Date
+
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import it.codingjam.lagioconda.actors.PopulationActor.{MigrationDone, SetupPopulation}
 import it.codingjam.lagioconda.actors.SocketActor._
 import it.codingjam.lagioconda.protocol.InEvent
-import it.codingjam.lagioconda.protocol.Messages.Start
+import it.codingjam.lagioconda.protocol.Messages.{Start, Statistics}
 import it.codingjam.lagioconda.services.ImageGenerator
+import java.time.{Duration => JavaDuration}
 
 import scala.util.Random
 import scala.concurrent.duration._
@@ -14,13 +19,14 @@ class SocketActor(out: ActorRef, imageGenerator: ImageGenerator) extends Actor w
 
   implicit val executor = context.system.dispatcher
 
-  val MaxPopulation = 10
+  val MaxPopulation = 1
 
   var populationActors: List[ActorRef] = List()
   var generationCounter = 0
   var oldGenerationCounter = 0
   val statisticsRate = 10
 
+  val startedAt: Instant = Instant.now()
   self ! Start(0)
 
   context.system.scheduler.schedule(5.seconds, statisticsRate.seconds, self, PrintStatistics)
@@ -44,7 +50,8 @@ class SocketActor(out: ActorRef, imageGenerator: ImageGenerator) extends Actor w
 
     case msg: GenerationRan =>
       generationCounter += 1
-      if (Random.nextInt(1000) < 1) {
+      /*
+      if (Random.nextInt(10000000000000000) < 1) {
         val r = Random.nextInt(populationActors.size)
         val destination =
           if (r == msg.index)
@@ -52,8 +59,10 @@ class SocketActor(out: ActorRef, imageGenerator: ImageGenerator) extends Actor w
           else
             r
         populationActors(msg.index) ! PopulationActor.Migrate(msg.index, Population.Size / 20, populationActors(destination))
+
       } else
-        populationActors(msg.index) ! PopulationActor.RunAGeneration(msg.index)
+       */
+      populationActors(msg.index) ! PopulationActor.RunAGeneration(msg.index)
 
     case msg: PopulationGenerated =>
       generationCounter += 1
@@ -65,10 +74,21 @@ class SocketActor(out: ActorRef, imageGenerator: ImageGenerator) extends Actor w
     case msg @ PrintStatistics =>
       val rate = (generationCounter - oldGenerationCounter) / (statisticsRate.toDouble)
       oldGenerationCounter = generationCounter
-      log.info(s"Rate: Generation/s = ${rate}")
+      val output = List(
+        s"Rate: Generation/s = ${rate}",
+        timeDifference()
+      ).mkString("<br/>")
+      out ! Statistics(output)
 
     case other =>
       log.error(s"This must not happen $other")
+  }
+
+  def timeDifference(): String = {
+    val d = JavaDuration.between(startedAt, Instant.now)
+    val u = List(d.getSeconds)
+
+    u.mkString(" ")
   }
 }
 

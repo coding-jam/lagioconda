@@ -6,31 +6,29 @@ import it.codingjam.lagioconda.ga.{Chromosome, CrossoverPointLike, MutationPoint
 
 import scala.util.Random
 
-case class Population(generation: Int, individuals: List[IndividualState]) {
+case class Population(generation: Int, individuals: List[IndividualState], trend: String = "") {
 
   def runAGeneration()(implicit fitnessFunction: FitnessFunction,
                        dimension: ImageDimensions,
                        crossover: CrossoverPointLike,
                        mutation: MutationPointLike): Population = {
-    val steps = individuals.size / 2
 
-    val i = individuals.splitAt(Population.Size / 2)
+    val i = individuals.splitAt((Population.Size * Population.EliteRatio).toInt)
 
-    var newIndividuals = i._1 // elite
-    val worstIndividuals = Population(generation, i._2)
+    var newIndividuals = i._1 // start with elite
 
-    Range(0, steps).foreach { step =>
+    Range(0, Population.Size - newIndividuals.size + Population.IncrementBeforeCut).foreach { step =>
       val r = Random.nextInt(100)
       if (r < 5) {
         // Mutation
-        val chromosome = worstIndividuals.randomIndividual.chromosome.mutate(3)
+        val chromosome = this.randomIndividual.chromosome.mutate(Population.NumberOfMutating)
         val fitness = fitnessFunction.fitness(chromosome)
         newIndividuals = newIndividuals :+ IndividualState(chromosome, fitness)
       } else {
 
 // Crossover
-        val c1 = worstIndividuals.randomIndividual.chromosome
-        val c2 = worstIndividuals.randomIndividual.chromosome
+        val c1 = randomIndividual.chromosome
+        val c2 = randomIndividual.chromosome
 
         val newChromosomes: (Chromosome, Chromosome) = c1.onePointCrossover(c2)
         val list = List(newChromosomes._1, newChromosomes._2)
@@ -43,6 +41,7 @@ case class Population(generation: Int, individuals: List[IndividualState]) {
     }
     val l = newIndividuals.sorted(Ordering[IndividualState]).reverse
     val selectedIndividual = l.take(Population.Size)
+
     //hillClimb(
     Population(generation + 1, selectedIndividual)
     //)
@@ -117,7 +116,10 @@ case class Population(generation: Int, individuals: List[IndividualState]) {
 
 object Population {
 
-  val Size = 100
+  val Size = 40
+  val EliteRatio = 20.0 / 100.0
+  val IncrementBeforeCut = (Size * 10.0 / 100.0).toInt
+  val NumberOfMutating = 10
 
   def randomGeneration()(implicit fitnessFunction: FitnessFunction, dimension: ImageDimensions): Population = {
 
