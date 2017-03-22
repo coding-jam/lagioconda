@@ -1,6 +1,8 @@
 package it.codingjam.lagioconda.ga
 
-case class Gene(binaryString: String) {
+import scala.collection.immutable.Seq
+
+case class Gene(binaryString: String)(implicit val length: Int) {
 
   require(binaryString.split("").forall(s => s.equals("1") || s.equals("0")))
 
@@ -23,8 +25,20 @@ case class Gene(binaryString: String) {
         .substring(mp + 1))
   }
 
-}
+  def fold: Gene = {
+    val partition = binaryString.splitAt(binaryString.length / 2)
+    val p: Seq[Char] = partition._1
+    val q: Seq[Char] = partition._2.reverse
+    val l = p.zipAll(q, "", "").flatMap(_.productIterator.toList).filter(_ != "").mkString("")
+    Gene(l)
+  }
 
-object Gene {
-  val Size = 58
+  def unfold: Gene = {
+    val p = binaryString.zipWithIndex.partition(_._2 % 2 == 0)
+    val p1 = p._1.map(_._1)
+    val p2 = p._2.map(_._1).reverse
+    val string = (p1 ++ p2).mkString("")
+    Gene(string)
+  }
+
 }

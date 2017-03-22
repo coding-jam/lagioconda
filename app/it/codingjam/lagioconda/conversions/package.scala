@@ -29,7 +29,7 @@ package object conversions {
       "%09d".format(i.toBinaryString.toInt)
     }
 
-    def toGene: Gene = {
+    def toGene(implicit length: Int): Gene = {
       val list = List(
         to9bits(circle.center.x),
         to9bits(circle.center.y),

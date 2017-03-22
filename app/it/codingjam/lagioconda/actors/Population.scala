@@ -121,7 +121,7 @@ object Population {
   val IncrementBeforeCut = (Size * 10.0 / 100.0).toInt
   val NumberOfMutating = 10
 
-  def randomGeneration()(implicit fitnessFunction: FitnessFunction, dimension: ImageDimensions): Population = {
+  def randomGeneration()(implicit fitnessFunction: FitnessFunction, dimension: ImageDimensions, length: Int): Population = {
 
     var list: List[IndividualState] = List()
 
