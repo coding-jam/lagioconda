@@ -1,6 +1,6 @@
 package it.codingjam.lagioconda.actors
 
-import it.codingjam.lagioconda.domain.ImageDimensions
+import it.codingjam.lagioconda.domain.{Configuration, ImageDimensions}
 import it.codingjam.lagioconda.fitness.FitnessFunction
 import it.codingjam.lagioconda.ga.{Chromosome, CrossoverPointLike, MutationPointLike, RandomChromosome}
 
@@ -121,7 +121,7 @@ object Population {
   val IncrementBeforeCut = (Size * 10.0 / 100.0).toInt
   val NumberOfMutating = 10
 
-  def randomGeneration()(implicit fitnessFunction: FitnessFunction, dimension: ImageDimensions, length: Int): Population = {
+  def randomGeneration()(implicit fitnessFunction: FitnessFunction, dimension: ImageDimensions, configuration: Configuration): Population = {
 
     var list: List[IndividualState] = List()
 

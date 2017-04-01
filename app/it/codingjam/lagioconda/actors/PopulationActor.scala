@@ -1,19 +1,18 @@
 package it.codingjam.lagioconda.actors
 
-import java.awt.image.{BufferedImage, DataBufferByte, DataBufferInt}
+import java.awt.image.{BufferedImage, DataBufferByte}
 import java.io.{ByteArrayOutputStream, File}
 import javax.imageio.ImageIO
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import it.codingjam.lagioconda.actors.PopulationActor.{Migrate, Migration, MigrationDone, SetupPopulation}
 import it.codingjam.lagioconda.actors.SocketActor.{GenerationRan, PopulationGenerated}
-import it.codingjam.lagioconda.conversions._
-import it.codingjam.lagioconda.domain.ImageDimensions
+import it.codingjam.lagioconda.domain.{Configuration, ImageDimensions}
 import it.codingjam.lagioconda.fitness.ByteComparisonFitness
 import it.codingjam.lagioconda.ga.{RandomCrossoverPoint, RandomMutationPoint}
 import it.codingjam.lagioconda.protocol.Messages.Individual
 import org.apache.commons.codec.binary.Base64OutputStream
-import org.bytedeco.javacpp.opencv_imgcodecs._
+import it.codingjam.lagioconda.conversions.ChromosomeToBufferedImage
 
 class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
 
@@ -30,8 +29,8 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
   convertedImg.getGraphics().drawImage(reference, 0, 0, null)
 
   val referenceInByte = convertedImg.getRaster().getDataBuffer().asInstanceOf[DataBufferByte].getData()
+  implicit val configuration = Configuration(alpha = 128, length = 50)
 
-  implicit val alpha = 128
   implicit val dimension = ImageDimensions(reference.getWidth, reference.getHeight)
   implicit val fitnessFunction = new ByteComparisonFitness(referenceInByte)
   implicit val crossover = new RandomCrossoverPoint
@@ -99,7 +98,7 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
 
   private def format(d: Double) = f"$d%1.3f"
 
-  def updateUI(b: IndividualState): Unit = {
+  def updateUI(b: IndividualState)(implicit configuration: Configuration): Unit = {
     val bi = b.chromosome.toBufferedImage()
     val os = new ByteArrayOutputStream()
     val b64 = new Base64OutputStream(os)

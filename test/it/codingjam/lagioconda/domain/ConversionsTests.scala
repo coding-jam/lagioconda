@@ -6,15 +6,30 @@ import org.scalatest.{MustMatchers, WordSpecLike}
 
 class ConversionsTests extends WordSpecLike with MustMatchers {
 
+  //helper functions
+  def fold(gene: Gene, times: Int): Gene = {
+    if (times <= 0) gene
+    else
+      fold(gene.fold, times - 1)
+  }
+
+  def unfold(gene: Gene, times: Int): Gene = {
+    if (times <= 0) gene
+    else
+      unfold(gene.unfold, times - 1)
+  }
+
   "Conversion" should {
 
     def toBinary(s: String): String = {
       s.toCharArray.map(_.toInt).map(_ % 2).map(_.toString).mkString("")
     }
 
-    val sampleCircle = Circle(Center(100, 300), 10, Color(120, 10, 30, 100))
+    implicit val configuration = Configuration(alpha = 100, length = 50)
 
-    val binarySequence = "0011001001001011000000101001111000000010100001111001100100"
+    val sampleCircle = Circle(Center(100, 300), 10, Color(120, 10, 30, configuration.alpha))
+
+    val binarySequence = "00110010010010110000001010011110000000101000011110"
     implicit val length = binarySequence.length
 
     val sampleGene = Gene(binarySequence)
@@ -37,7 +52,7 @@ class ConversionsTests extends WordSpecLike with MustMatchers {
 
     "fold a simple gene" in {
       val binaryString = "0000000011111111"
-      val gene = Gene(binaryString)(binaryString.length)
+      val gene = Gene(binaryString)
 
       val folded = gene.fold
 
@@ -52,7 +67,7 @@ class ConversionsTests extends WordSpecLike with MustMatchers {
 
     "fold a gene" in {
       val binaryString = toBinary("12345678ABCDEFGH")
-      val gene = Gene(binaryString)(binaryString.length)
+      val gene = Gene(binaryString)
 
       val folded = gene.fold
 
@@ -61,59 +76,66 @@ class ConversionsTests extends WordSpecLike with MustMatchers {
 
     "fold a gene twice" in {
       val binaryString = toBinary("12345678ABCDEFGH")
-      val gene = Gene(binaryString)(binaryString.length)
+      val gene = Gene(binaryString)
 
-      val folded = gene.fold.fold
+      val folded = fold(gene, 2)
 
       folded mustBe (Gene(toBinary("1AH82BG73CF64DE5")))
     }
 
     "unfold a gene folded twice" in {
       val folded = Gene(toBinary("1AH82BG73CF64DE5"))
-      val unfolded = folded.unfold.unfold
+      val unfolded = unfold(folded, 2)
 
       unfolded mustBe Gene(toBinary("12345678ABCDEFGH"))
     }
 
     "fold a gene three times" in {
       val binaryString = toBinary("12345678ABCDEFGH")
-      val gene = Gene(binaryString)(binaryString.length)
+      val gene = Gene(binaryString)
 
-      val folded = gene.fold.fold.fold
+      val folded = fold(gene, 3)
 
       folded mustBe (Gene(toBinary("15AEHD8426BFGC73")))
     }
 
     "unfold a gene folded three times" in {
       val folded = Gene(toBinary("15AEHD8426BFGC73"))
-      val unfolded = folded.unfold.unfold.unfold
+      val unfolded = unfold(folded, 3)
 
       unfolded mustBe Gene(toBinary("12345678ABCDEFGH"))
     }
 
     "fold a gene four times" in {
       val binaryString = toBinary("12345678ABCDEFGH")
-      val gene = Gene(binaryString)(binaryString.length)
+      val gene = Gene(binaryString)
 
-      val folded = gene.fold.fold.fold.fold
+      val folded = fold(gene, 4)
 
       folded mustBe (Gene(toBinary("1357ACEGHFDB8642")))
     }
 
     "unfold a gene folded four times" in {
       val folded = Gene(toBinary("1357ACEGHFDB8642"))
-      val unfolded = folded.unfold.unfold.unfold
+      val unfolded = unfold(folded, 4)
 
       unfolded mustBe Gene(toBinary("12345678ABCDEFGH"))
     }
 
     "fold a gene five times" in {
       val binaryString = toBinary("1234567890abcdABCDEFGHILMNOP")
-      val gene = Gene(binaryString)(binaryString.length)
+      val gene = Gene(binaryString)
 
-      val folded = gene.fold.fold.fold.fold.fold
+      val folded = fold(gene, 5)
 
       folded mustBe (Gene(toBinary("1cMF86DOA3aIH04BPC59GLb2dNE7")))
+    }
+
+    "unfold a gene five times" in {
+      val folded = Gene(toBinary("1cMF86DOA3aIH04BPC59GLb2dNE7"))
+      val unfolded = unfold(folded, 5)
+
+      unfolded mustBe Gene(toBinary("1234567890abcdABCDEFGHILMNOP"))
     }
 
   }

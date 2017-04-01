@@ -1,8 +1,10 @@
 package it.codingjam.lagioconda.ga
 
+import it.codingjam.lagioconda.domain.Configuration
+
 import scala.collection.immutable.Seq
 
-case class Gene(binaryString: String)(implicit val length: Int) {
+case class Gene(binaryString: String) {
 
   require(binaryString.split("").forall(s => s.equals("1") || s.equals("0")))
 
