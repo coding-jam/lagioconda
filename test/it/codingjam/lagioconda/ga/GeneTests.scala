@@ -10,10 +10,10 @@ class GeneTests extends WordSpecLike with MustMatchers {
 
   "Gene" should {
 
-    val sampleGene1 =
-      Gene("00011001000100101100000000101001111000000010100001111001100100")
-    val sampleGene2 =
-      Gene("01001000011000001110111010011001110111000011001011011111001000")
+    val binaryString1 = "00011001000100101100000000101001111000000010100001111001100100"
+    val sampleGene1 = Gene(binaryString1)
+    val binaryString2 = "01001000011000001110111010011001110111000011001011011111001000"
+    val sampleGene2 = Gene(binaryString2)
 
     "crossover with fixed crossover point" in {
       implicit val cp = new FixedCrossoverPoint(10)

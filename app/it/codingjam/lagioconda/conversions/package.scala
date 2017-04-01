@@ -5,7 +5,7 @@ import java.awt.geom.Ellipse2D
 import java.awt.image.{BufferedImage, DataBufferInt}
 import java.nio.{ByteBuffer, IntBuffer}
 
-import it.codingjam.lagioconda.domain.{Center, Circle, Color, ImageDimensions}
+import it.codingjam.lagioconda.domain._
 import it.codingjam.lagioconda.ga.{Gene, _}
 import org.bytedeco.javacpp.opencv_core._
 import org.bytedeco.javacpp.opencv_imgproc._
@@ -29,7 +29,7 @@ package object conversions {
       "%09d".format(i.toBinaryString.toInt)
     }
 
-    def toGene: Gene = {
+    def toGene(implicit configuration: Configuration): Gene = {
       val list = List(
         to9bits(circle.center.x),
         to9bits(circle.center.y),
@@ -47,20 +47,20 @@ package object conversions {
 
     private def parse(s: String) = Integer.parseInt(s, 2).toInt
 
-    def toCircle(implicit alpha: Int): Circle = {
+    def toCircle(implicit configuration: Configuration): Circle = {
       val x = parse(gene.binaryString.substring(0, 9))
       val y = parse(gene.binaryString.substring(9, 18))
       val radius = parse(gene.binaryString.substring(18, 26))
       val red = parse(gene.binaryString.substring(26, 34))
       val green = parse(gene.binaryString.substring(34, 42))
       val blue = parse(gene.binaryString.substring(42, 50))
-      Circle(Center(x, y), radius, Color(red, green, blue, alpha))
+      Circle(Center(x, y), radius, Color(red, green, blue, configuration.alpha))
     }
   }
 
-  implicit class ChromosomeToBufferedImage(chromosome: Chromosome)(implicit alpha: Int) {
+  implicit class ChromosomeToBufferedImage(chromosome: Chromosome)(implicit configuration: Configuration) {
 
-    def toBufferedImage()(implicit dimensions: ImageDimensions, alpha: Int): BufferedImage = {
+    def toBufferedImage()(implicit dimensions: ImageDimensions): BufferedImage = {
       val circles: List[Circle] = chromosome.genes.map(_.toCircle)
 
       val image = new BufferedImage(dimensions.width, dimensions.height, BufferedImage.TYPE_3BYTE_BGR);

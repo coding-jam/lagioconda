@@ -1,5 +1,9 @@
 package it.codingjam.lagioconda.ga
 
+import it.codingjam.lagioconda.domain.Configuration
+
+import scala.collection.immutable.Seq
+
 case class Gene(binaryString: String) {
 
   require(binaryString.split("").forall(s => s.equals("1") || s.equals("0")))
@@ -18,13 +22,36 @@ case class Gene(binaryString: String) {
 
   def mutation(implicit mutationPoint: MutationPointLike): Gene = {
     val mp = mutationPoint.mutationPoint(binaryString.length)
-    Gene(
-      binaryString.substring(0, mp) + flip(binaryString(mp)) + binaryString
-        .substring(mp + 1))
+
+    val g = this.fold(5)
+    val range = Range(mp, mp + 20)
+    val mutated = binaryString.toCharArray.zipWithIndex
+      .map { i =>
+        if (range.contains(i._2)) flip(i._1) else (i._1).toString
+      }
+      .mkString("")
+
+    Gene(mutated).unfold(5)
   }
 
-}
+  def fold: Gene = {
+    val partition = binaryString.splitAt(binaryString.length / 2)
+    val p: Seq[Char] = partition._1
+    val q: Seq[Char] = partition._2.reverse
+    val l = p.zipAll(q, "", "").flatMap(_.productIterator.toList).filter(_ != "").mkString("")
+    Gene(l)
+  }
 
-object Gene {
-  val Size = 58
+  def fold(times: Int): Gene = if (times <= 0) this else fold.fold(times - 1)
+
+  def unfold(times: Int): Gene = if (times <= 0) this else unfold.unfold(times - 1)
+
+  def unfold: Gene = {
+    val p = binaryString.zipWithIndex.partition(_._2 % 2 == 0)
+    val p1 = p._1.map(_._1)
+    val p2 = p._2.map(_._1).reverse
+    val string = (p1 ++ p2).mkString("")
+    Gene(string)
+  }
+
 }
