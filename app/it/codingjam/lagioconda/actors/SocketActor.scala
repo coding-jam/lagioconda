@@ -24,12 +24,12 @@ class SocketActor(out: ActorRef, imageGenerator: ImageGenerator) extends Actor w
   var populationActors: List[ActorRef] = List()
   var generationCounter = 0
   var oldGenerationCounter = 0
-  val statisticsRate = 10
+  val statisticsRate = 500
 
   val startedAt: Instant = Instant.now()
   self ! Start(0)
 
-  context.system.scheduler.schedule(5.seconds, statisticsRate.seconds, self, PrintStatistics)
+  context.system.scheduler.schedule(1.seconds, statisticsRate.milliseconds, self, PrintStatistics)
 
   override def receive = {
     case msg: InEvent =>
@@ -72,9 +72,10 @@ class SocketActor(out: ActorRef, imageGenerator: ImageGenerator) extends Actor w
       populationActors(msg.index) ! PopulationActor.RunAGeneration(msg.index)
 
     case msg @ PrintStatistics =>
-      val rate = (generationCounter - oldGenerationCounter) / (statisticsRate.toDouble)
+      val rate = (generationCounter - oldGenerationCounter) * (1000.0 / statisticsRate.toDouble)
       oldGenerationCounter = generationCounter
       val output = List(
+        s"Current generation: ${generationCounter}",
         s"Rate: Generation/s = ${rate}",
         timeDifference()
       ).mkString("<br/>")

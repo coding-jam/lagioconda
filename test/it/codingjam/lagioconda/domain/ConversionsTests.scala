@@ -78,14 +78,14 @@ class ConversionsTests extends WordSpecLike with MustMatchers {
       val binaryString = toBinary("12345678ABCDEFGH")
       val gene = Gene(binaryString)
 
-      val folded = fold(gene, 2)
+      val folded = gene.fold(2)
 
       folded mustBe (Gene(toBinary("1AH82BG73CF64DE5")))
     }
 
     "unfold a gene folded twice" in {
       val folded = Gene(toBinary("1AH82BG73CF64DE5"))
-      val unfolded = unfold(folded, 2)
+      val unfolded = folded.unfold(2)
 
       unfolded mustBe Gene(toBinary("12345678ABCDEFGH"))
     }
@@ -94,14 +94,14 @@ class ConversionsTests extends WordSpecLike with MustMatchers {
       val binaryString = toBinary("12345678ABCDEFGH")
       val gene = Gene(binaryString)
 
-      val folded = fold(gene, 3)
+      val folded = gene.fold(3)
 
       folded mustBe (Gene(toBinary("15AEHD8426BFGC73")))
     }
 
     "unfold a gene folded three times" in {
       val folded = Gene(toBinary("15AEHD8426BFGC73"))
-      val unfolded = unfold(folded, 3)
+      val unfolded = folded.unfold(3)
 
       unfolded mustBe Gene(toBinary("12345678ABCDEFGH"))
     }
@@ -110,14 +110,14 @@ class ConversionsTests extends WordSpecLike with MustMatchers {
       val binaryString = toBinary("12345678ABCDEFGH")
       val gene = Gene(binaryString)
 
-      val folded = fold(gene, 4)
+      val folded = gene.fold(4)
 
       folded mustBe (Gene(toBinary("1357ACEGHFDB8642")))
     }
 
     "unfold a gene folded four times" in {
       val folded = Gene(toBinary("1357ACEGHFDB8642"))
-      val unfolded = unfold(folded, 4)
+      val unfolded = folded.unfold(4)
 
       unfolded mustBe Gene(toBinary("12345678ABCDEFGH"))
     }
@@ -126,14 +126,14 @@ class ConversionsTests extends WordSpecLike with MustMatchers {
       val binaryString = toBinary("1234567890abcdABCDEFGHILMNOP")
       val gene = Gene(binaryString)
 
-      val folded = fold(gene, 5)
+      val folded = gene.fold(5)
 
       folded mustBe (Gene(toBinary("1cMF86DOA3aIH04BPC59GLb2dNE7")))
     }
 
     "unfold a gene five times" in {
       val folded = Gene(toBinary("1cMF86DOA3aIH04BPC59GLb2dNE7"))
-      val unfolded = unfold(folded, 5)
+      val unfolded = folded.unfold(5)
 
       unfolded mustBe Gene(toBinary("1234567890abcdABCDEFGHILMNOP"))
     }

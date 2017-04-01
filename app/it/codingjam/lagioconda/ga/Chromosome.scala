@@ -17,7 +17,7 @@ case class Chromosome(genes: List[Gene]) {
 
     def mut(c: Chromosome) = c.mutate
 
-    val f = Function.chain(List.fill(5)(mut(_)))
+    val f = Function.chain(List.fill(times)(mut(_)))
     f(this)
   }
 

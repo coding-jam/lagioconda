@@ -22,9 +22,16 @@ case class Gene(binaryString: String) {
 
   def mutation(implicit mutationPoint: MutationPointLike): Gene = {
     val mp = mutationPoint.mutationPoint(binaryString.length)
-    Gene(
-      binaryString.substring(0, mp) + flip(binaryString(mp)) + binaryString
-        .substring(mp + 1))
+
+    val g = this.fold(5)
+    val range = Range(mp, mp + 20)
+    val mutated = binaryString.toCharArray.zipWithIndex
+      .map { i =>
+        if (range.contains(i._2)) flip(i._1) else (i._1).toString
+      }
+      .mkString("")
+
+    Gene(mutated).unfold(5)
   }
 
   def fold: Gene = {
@@ -34,6 +41,10 @@ case class Gene(binaryString: String) {
     val l = p.zipAll(q, "", "").flatMap(_.productIterator.toList).filter(_ != "").mkString("")
     Gene(l)
   }
+
+  def fold(times: Int): Gene = if (times <= 0) this else fold.fold(times - 1)
+
+  def unfold(times: Int): Gene = if (times <= 0) this else unfold.unfold(times - 1)
 
   def unfold: Gene = {
     val p = binaryString.zipWithIndex.partition(_._2 % 2 == 0)

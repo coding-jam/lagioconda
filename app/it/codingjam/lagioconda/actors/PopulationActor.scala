@@ -16,7 +16,7 @@ import it.codingjam.lagioconda.conversions.ChromosomeToBufferedImage
 
 class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
 
-  var state = Population(0, List[IndividualState]())
+  var state = Population(0, List[IndividualState](), 0, "???")
   var generation = 0
   var n = 0
   var index = -1
@@ -52,17 +52,18 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
       val oldFitness = state.meanFitness
       val oldBest = best
       state = state.runAGeneration
-      log.debug("Mean fitness for population {}@{} is {}, {}",
+      /*log.debug("Mean fitness for population {}@{} is {}, {}",
                 cmd.index,
                 state.generation,
                 format(state.meanFitness),
                 compareFitnesses(oldFitness, state.meanFitness))
+       */
       best = state.individuals.headOption
       best.foreach { b =>
         oldBest.foreach { old =>
           if (b.fitness > old.fitness) {
             updateUI(b)
-            log.debug("New best for population {}@{} is {}", cmd.index, state.generation, format(b.fitness))
+            //log.debug("New best for population {}@{} is {}", cmd.index, state.generation, format(b.fitness))
           }
         }
       }
@@ -77,13 +78,13 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
       val oldFitness = state.meanFitness
       val oldBest = best
       state = state.addIndividuals(cmd.list)
-      log.debug("Mean fitness after migration for population {}@{} is {}", index, state.generation, format(state.meanFitness))
+      //log.debug("Mean fitness after migration for population {}@{} is {}", index, state.generation, format(state.meanFitness))
       best = state.individuals.headOption
       best.foreach { b =>
         oldBest.foreach { old =>
           if (b.fitness > old.fitness) {
             updateUI(b)
-            log.debug("New best after migration for population {}@{} is {}", index, state.generation, format(b.fitness))
+            //log.debug("New best after migration for population {}@{} is {}", index, state.generation, format(b.fitness))
           }
         }
       }
@@ -106,7 +107,7 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
     ImageIO.write(bi, "png", b64)
     val image = os.toString("UTF-8")
 
-    val s = s"Fitness: ${format(b.fitness * 100)}%, generation: ${state.generation}"
+    val s = s"Fitness: ${format(b.fitness * 100)}%, generation: ${state.generation}, reason ${state.bestReason}"
 
     out ! Individual(generation = generation, image = image, population = index, info = s)
   }
