@@ -24,7 +24,7 @@ class SocketActor(out: ActorRef, imageGenerator: ImageGenerator) extends Actor w
   var populationActors: List[ActorRef] = List()
   var generationCounter = 0
   var oldGenerationCounter = 0
-  val statisticsRate = 500
+  val statisticsRate = 1000
 
   val startedAt: Instant = Instant.now()
   self ! Start(0)

@@ -2,8 +2,9 @@ package it.codingjam.lagioconda.actors
 
 import it.codingjam.lagioconda.domain.{Configuration, ImageDimensions}
 import it.codingjam.lagioconda.fitness.FitnessFunction
-import it.codingjam.lagioconda.ga.{Chromosome, CrossoverPointLike, MutationPointLike, RandomChromosome}
+import it.codingjam.lagioconda.ga._
 
+import scala.collection.immutable.Seq
 import scala.util.Random
 
 case class Population(generation: Int,
@@ -24,14 +25,15 @@ case class Population(generation: Int,
     var newIndividuals = i._1 // start with elite
 
     val chanceOfMutation = (generation - newBestAtGeneration).min(70).max(5)
-    Range(0, Population.Size - newIndividuals.size + Population.IncrementBeforeCut).foreach { step =>
+    Range(0, Population.Size).foreach { step =>
       val r = Random.nextInt(100)
 
       if (r < chanceOfMutation) {
         // Mutation
         val chromosome: Chromosome = this.randomIndividual.chromosome.mutate(Population.NumberOfMutatingGenes)
         val fitness = fitnessFunction.fitness(chromosome)
-        newIndividuals = newIndividuals :+ IndividualState(chromosome, fitness, "mutation")
+        // newIndividuals = newIndividuals :+ IndividualState(chromosome, fitness, "mutation")
+        newIndividuals = addIfNotClone(newIndividuals, IndividualState(chromosome, fitness, "mutation"))
       } else {
 
 // Crossover
@@ -43,8 +45,9 @@ case class Population(generation: Int,
         list.foreach { c =>
           val fitness = fitnessFunction.fitness(c)
           val individual = IndividualState(c, fitness, "crossover")
-          newIndividuals = newIndividuals :+ individual
+          newIndividuals = addIfNotClone(newIndividuals, individual)
         }
+
       }
     }
     val l = newIndividuals.sorted(Ordering[IndividualState]).reverse
@@ -57,6 +60,16 @@ case class Population(generation: Int,
     //hillClimb(
     Population(generation + 1, selectedIndividual, bestGeneration, selectedIndividual.head.generatedBy)
     //)
+
+  }
+
+  def addIfNotClone(list: List[IndividualState], newIndividual: IndividualState) = {
+    val l: Seq[IndividualState] = list.filter(i => i.fitness == newIndividual.fitness)
+    val m: Seq[Set[Gene]] = l.map(i => i.chromosome.genes.toSet)
+    val n = m.find(set => set.equals(newIndividual.chromosome.genes.toSet))
+    if (n.isDefined)
+      list
+    else list :+ newIndividual
 
   }
 
