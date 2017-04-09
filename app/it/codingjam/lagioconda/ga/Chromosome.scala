@@ -50,6 +50,15 @@ case class Chromosome(genes: List[Gene]) {
     (Chromosome(l._1), Chromosome(l._2))
   }
 
+  def uniformCrossover(other: Chromosome)(implicit crossover: CrossoverPointLike): Chromosome = {
+    val l = genes
+      .zip(other.genes)
+      .map { case (g1, g2) => shuffle(g1, g2) }
+      .unzip
+
+    Chromosome(l._1)
+  }
+
   def neighbour(r: Int)(implicit mutationPointLike: MutationPointLike) = {
     Chromosome((genes.slice(0, r) :+ genes(r).mutation(10)) ++ genes.slice(r + 1, genes.length))
   }
@@ -66,6 +75,6 @@ case class Chromosome(genes: List[Gene]) {
 
 object Chromosome {
 
-  val numberOfGenes = 40
+  val numberOfGenes = 100
 
 }

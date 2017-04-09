@@ -31,8 +31,8 @@ package object conversions {
 
     def toGene(implicit configuration: Configuration): Gene = {
       val list = List(
-        to9bits(circle.center.x),
-        to9bits(circle.center.y),
+        to8bits(circle.center.x),
+        to8bits(circle.center.y),
         to8bits(circle.radius),
         to8bits(circle.color.red),
         to8bits(circle.color.green),
@@ -48,12 +48,12 @@ package object conversions {
     private def parse(s: String) = Integer.parseInt(s, 2).toInt
 
     def toCircle(implicit configuration: Configuration): Circle = {
-      val x = parse(gene.binaryString.substring(0, 9))
-      val y = parse(gene.binaryString.substring(9, 18))
-      val radius = parse(gene.binaryString.substring(18, 26))
-      val red = parse(gene.binaryString.substring(26, 34))
-      val green = parse(gene.binaryString.substring(34, 42))
-      val blue = parse(gene.binaryString.substring(42, 50))
+      val x = parse(gene.binaryString.substring(0, 8))
+      val y = parse(gene.binaryString.substring(8, 16))
+      val radius = parse(gene.binaryString.substring(16, 24))
+      val red = parse(gene.binaryString.substring(24, 32))
+      val green = parse(gene.binaryString.substring(32, 40))
+      val blue = parse(gene.binaryString.substring(40, 48))
       Circle(Center(x, y), radius, Color(red, green, blue, configuration.alpha))
     }
   }

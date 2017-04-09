@@ -13,15 +13,16 @@ import it.codingjam.lagioconda.ga.{RandomCrossoverPoint, RandomMutationPoint}
 import it.codingjam.lagioconda.protocol.Messages.Individual
 import org.apache.commons.codec.binary.Base64OutputStream
 import it.codingjam.lagioconda.conversions.ChromosomeToBufferedImage
+import it.codingjam.lagioconda.selection.WheelSelection
 
 class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
 
-  var state = Population(0, List[IndividualState](), 0, "???")
+  var state = Population(0, List[IndividualState](), 0.0, 0, "???")
   var generation = 0
   var n = 0
   var index = -1
 
-  val file = new File("resources/monalisasmall.png")
+  val file = new File("resources/monalisasmall2.png")
 
   val reference = ImageIO.read(file)
 
@@ -29,12 +30,13 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
   convertedImg.getGraphics().drawImage(reference, 0, 0, null)
 
   val referenceInByte = convertedImg.getRaster().getDataBuffer().asInstanceOf[DataBufferByte].getData()
-  implicit val configuration = Configuration(alpha = 128, length = 50)
+  implicit val configuration = Configuration(alpha = 64, length = 48)
 
   implicit val dimension = ImageDimensions(reference.getWidth, reference.getHeight)
   implicit val fitnessFunction = new ByteComparisonFitness(referenceInByte)
   implicit val crossover = new RandomCrossoverPoint
   implicit val mutation = new RandomMutationPoint
+  implicit val selection = new WheelSelection
 
   var best: Option[IndividualState] = None
 
@@ -51,7 +53,8 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
     case cmd: PopulationActor.RunAGeneration =>
       val oldFitness = state.meanFitness
       val oldBest = best
-      state = state.runAGeneration
+
+      state = state.nextGeneration
       /*log.debug("Mean fitness for population {}@{} is {}, {}",
                 cmd.index,
                 state.generation,
