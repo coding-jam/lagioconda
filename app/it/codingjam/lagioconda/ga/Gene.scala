@@ -20,11 +20,11 @@ case class Gene(binaryString: String) {
     (Gene(newGene1), Gene(newGene2))
   }
 
-  def mutation(implicit mutationPoint: MutationPointLike): Gene = {
+  def mutation(bitsToMutate: Int)(implicit mutationPoint: MutationPointLike): Gene = {
     val mp = mutationPoint.mutationPoint(binaryString.length)
 
     val g = this.fold(5)
-    val range = Range(mp, mp + 20)
+    val range = Range(mp, mp + bitsToMutate)
     val mutated = binaryString.toCharArray.zipWithIndex
       .map { i =>
         if (range.contains(i._2)) flip(i._1) else (i._1).toString
