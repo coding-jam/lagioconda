@@ -2,7 +2,7 @@ package it.codingjam.lagioconda.actors
 
 import it.codingjam.lagioconda.domain.{Configuration, ImageDimensions}
 import it.codingjam.lagioconda.fitness.FitnessFunction
-import it.codingjam.lagioconda.ga.{Chromosome, CrossoverPointLike, MutationPointLike, RandomChromosome}
+import it.codingjam.lagioconda.ga._
 
 import scala.util.Random
 
@@ -17,6 +17,7 @@ case class Population(generation: Int,
                        crossover: CrossoverPointLike,
                        mutation: MutationPointLike): Population = {
 
+    // standard genetic algorithm
     val bestFitness = individuals.head.fitness
 
     val i = individuals.splitAt((Population.Size * Population.EliteRatio).toInt)
@@ -24,26 +25,30 @@ case class Population(generation: Int,
     var newIndividuals = i._1 // start with elite
 
     val chanceOfMutation = (generation - newBestAtGeneration).min(70).max(5)
-    Range(0, Population.Size - newIndividuals.size + Population.IncrementBeforeCut).foreach { step =>
+    val sizeOfMutation = (50 * (1 - (individuals.head.fitness - 0.70))).toInt
+    val numberOfMutating = (Chromosome.numberOfGenes * (1 - (individuals.head.fitness - 0.70))).toInt
+    println("size of mut " + sizeOfMutation + " over genes " + numberOfMutating)
+    Range(0, Population.Size + 5).foreach { step =>
       val r = Random.nextInt(100)
 
       if (r < chanceOfMutation) {
         // Mutation
-        val chromosome: Chromosome = this.randomIndividual.chromosome.mutate(Population.NumberOfMutatingGenes)
+        val chromosome: Chromosome = this.randomIndividual.chromosome.mutate(numberOfMutating)(mutation, sizeOfMutation)
         val fitness = fitnessFunction.fitness(chromosome)
-        newIndividuals = newIndividuals :+ IndividualState(chromosome, fitness, "mutation")
+        // newIndividuals = newIndividuals :+ IndividualState(chromosome, fitness, "mutation")
+        newIndividuals = addIfNotClone(newIndividuals, IndividualState(chromosome, fitness, "mutation"))
       } else {
 
 // Crossover
-        val c1 = randomIndividual.chromosome
+        val c1 = randomElite.chromosome
         val c2 = randomIndividual.chromosome
 
-        val newChromosomes: (Chromosome, Chromosome) = c1.onePointCrossover(c2)
+        val newChromosomes: (Chromosome, Chromosome) = c1.fullCrossover(c2)
         val list = List(newChromosomes._1, newChromosomes._2)
         list.foreach { c =>
           val fitness = fitnessFunction.fitness(c)
           val individual = IndividualState(c, fitness, "crossover")
-          newIndividuals = newIndividuals :+ individual
+          newIndividuals = addIfNotClone(newIndividuals, individual)
         }
       }
     }
@@ -54,14 +59,30 @@ case class Population(generation: Int,
 
     val bestGeneration = if (newBestFitness > bestFitness) generation + 1 else newBestAtGeneration
 
-    //hillClimb(
-    Population(generation + 1, selectedIndividual, bestGeneration, selectedIndividual.head.generatedBy)
-    //)
+    val newPopulation = Population(generation + 1, selectedIndividual, bestGeneration, selectedIndividual.head.generatedBy)
+
+    if ((generation + 1) - newBestAtGeneration > 10)
+      Population.hillClimb(newPopulation, newPopulation.generation % Chromosome.numberOfGenes, (generation - newBestAtGeneration).min(50))
+    else
+      newPopulation
 
   }
 
+  def addIfNotClone(list: List[IndividualState], newIndividual: IndividualState) = {
+    val l: Seq[IndividualState] = list.filter(i => i.fitness == newIndividual.fitness)
+    val m: Seq[Set[Gene]] = l.map(i => i.chromosome.genes.toSet)
+    val n = m.find(set => set.equals(newIndividual.chromosome.genes.toSet))
+    if (n.isDefined)
+      list
+    else list :+ newIndividual
+  }
+
+  def bestIndividual = individuals.head
+
   def randomIndividual: IndividualState =
     individuals(Random.nextInt(individuals.size))
+
+  def randomElite: IndividualState = individuals(Random.nextInt((individuals.length * Population.EliteRatio).toInt))
 
   def randomPositionAndIndividual: (Int, IndividualState) = {
     val pos = Random.nextInt(individuals.size)
@@ -100,30 +121,6 @@ case class Population(generation: Int,
     Population(generation, individuals.take(Population.Size), newBestAtGeneration, bestReason)
   }
 
-  def hillClimb(pop: Population)(implicit fitnessFunction: FitnessFunction,
-                                 mutationPointLike: MutationPointLike,
-                                 dimensions: ImageDimensions): Population = {
-    var hillClimber = pop.randomIndividual
-    val firstHillClimber = hillClimber
-    val firstFitness = firstHillClimber.fitness
-    val r = Random.nextInt(Chromosome.numberOfGenes)
-
-    Range(0, 10).foreach { i =>
-      val neighbour = hillClimber.chromosome.neighbour(r)
-      val fitness = fitnessFunction.fitness(neighbour)
-      if (fitness > hillClimber.fitness) {
-        hillClimber = IndividualState(neighbour, fitness, "hillclimb")
-      }
-    }
-    if (firstFitness < hillClimber.fitness) {
-      val list = pop.individuals.filterNot(is => is == firstHillClimber)
-      val newPop = Population(generation, list, pop.newBestAtGeneration, "hillclimb")
-      newPop.addIndividuals(List(hillClimber))
-    } else {
-      pop
-    }
-  }
-
 }
 
 object Population {
@@ -131,7 +128,7 @@ object Population {
   val Size = 40
   val EliteRatio = 20.0 / 100.0
   val IncrementBeforeCut = (Size * 10.0 / 100.0).toInt
-  val NumberOfMutatingGenes: Int = (Size * 50.0 / 100.0).toInt
+  //val NumberOfMutatingGenes: Int = (Size * 50.0 / 100.0).toInt
 
   def randomGeneration()(implicit fitnessFunction: FitnessFunction, dimension: ImageDimensions, configuration: Configuration): Population = {
 
@@ -144,6 +141,33 @@ object Population {
       list = list :+ individual
     }
     Population(0, list.sorted(Ordering[IndividualState].reverse), 0, "random")
+  }
+
+  def hillClimb(pop: Population, gene: Int, lenght: Int)(implicit fitnessFunction: FitnessFunction,
+                                                         mutationPointLike: MutationPointLike,
+                                                         dimensions: ImageDimensions): Population = {
+    var hillClimber = pop.bestIndividual
+    val firstHillClimber = hillClimber
+    val firstFitness = firstHillClimber.fitness
+    val r = gene // Random.nextInt(Chromosome.numberOfGenes)
+
+    // doing a hill climbing phase last like a single population generation
+    Range(0, lenght).foreach { i =>
+      val neighbour = hillClimber.chromosome.neighbour(r)
+      val fitness = fitnessFunction.fitness(neighbour)
+      if (fitness > hillClimber.fitness) {
+        hillClimber = IndividualState(neighbour, fitness, "hillclimb")
+      }
+    }
+
+    if (firstFitness < hillClimber.fitness) {
+      val list = (List(hillClimber) ++ pop.individuals).take(Population.Size)
+      println("Hill clim OK at " + (pop.generation + 1))
+      Population(pop.generation, list, pop.newBestAtGeneration, bestReason = "hillclimb")
+    } else {
+      println("hill climb failed at " + (pop.generation + 1))
+      pop
+    }
   }
 
 }

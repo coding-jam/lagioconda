@@ -6,14 +6,14 @@ case class Chromosome(genes: List[Gene]) {
 
   require(genes.length == Chromosome.numberOfGenes)
 
-  def mutate(implicit mutationPoint: MutationPointLike): Chromosome = {
+  def mutate(implicit mutationPoint: MutationPointLike, mutationSize: Int): Chromosome = {
     val position = Random.nextInt(genes.size)
     Chromosome(
-      (genes.slice(0, position) :+ genes(position).mutation) ++ genes
+      (genes.slice(0, position) :+ genes(position).mutation(mutationSize)) ++ genes
         .slice(position + 1, genes.length))
   }
 
-  def mutate(times: Int)(implicit mutationPoint: MutationPointLike): Chromosome = {
+  def mutate(times: Int)(implicit mutationPoint: MutationPointLike, mutationSize: Int): Chromosome = {
 
     def mut(c: Chromosome) = c.mutate
 
@@ -51,7 +51,7 @@ case class Chromosome(genes: List[Gene]) {
   }
 
   def neighbour(r: Int)(implicit mutationPointLike: MutationPointLike) = {
-    Chromosome((genes.slice(0, r) :+ genes(r).mutation) ++ genes.slice(r + 1, genes.length))
+    Chromosome((genes.slice(0, r) :+ genes(r).mutation(10)) ++ genes.slice(r + 1, genes.length))
   }
 
   private def shuffle(g1: Gene, g2: Gene): (Gene, Gene) = {
