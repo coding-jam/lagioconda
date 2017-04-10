@@ -139,8 +139,8 @@ case class Population(generation: Int,
 
 object Population {
 
-  val Size = 40
-  val EliteCount = 2
+  val Size = 200
+  val EliteCount = 10
   val IncrementBeforeCut = (Size * 10.0 / 100.0).toInt
   //val NumberOfMutatingGenes: Int = (Size * 50.0 / 100.0).toInt
 
