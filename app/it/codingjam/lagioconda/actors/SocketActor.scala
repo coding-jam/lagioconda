@@ -89,8 +89,19 @@ class SocketActor(out: ActorRef, imageGenerator: ImageGenerator) extends Actor w
     val d = JavaDuration.between(startedAt, Instant.now)
     val u = List(d.getSeconds)
 
-    u.mkString(" ")
+    timeConversion(u.head)
   }
+
+  private def timeConversion(totalSeconds: Long) = {
+    val MinutesInHour = 60
+    val SecondsInMinutes = 60
+    val seconds = totalSeconds % SecondsInMinutes
+    val totalMinutes = totalSeconds / SecondsInMinutes
+    val minutes = totalMinutes % MinutesInHour
+    val hours = totalMinutes / MinutesInHour
+    hours + " hours " + minutes + " minutes " + seconds + " seconds"
+  }
+
 }
 
 object SocketActor {
