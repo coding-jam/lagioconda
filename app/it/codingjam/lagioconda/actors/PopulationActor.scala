@@ -30,7 +30,7 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
   convertedImg.getGraphics().drawImage(reference, 0, 0, null)
 
   val referenceInByte = convertedImg.getRaster().getDataBuffer().asInstanceOf[DataBufferByte].getData()
-  implicit val configuration = Configuration(alpha = 64, length = 48)
+  implicit val configuration = Configuration(alpha = 32, length = 48)
 
   implicit val dimension = ImageDimensions(reference.getWidth, reference.getHeight)
   implicit val fitnessFunction = new ByteComparisonFitness(referenceInByte)
@@ -61,6 +61,7 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
                 format(state.meanFitness),
                 compareFitnesses(oldFitness, state.meanFitness))
        */
+
       best = state.individuals.headOption
       best.foreach { b =>
         oldBest.foreach { old =>
