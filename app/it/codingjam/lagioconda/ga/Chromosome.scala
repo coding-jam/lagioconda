@@ -59,8 +59,8 @@ case class Chromosome(genes: List[Gene]) {
     Chromosome(l._1)
   }
 
-  def neighbour(r: Int)(implicit mutationPointLike: MutationPointLike) = {
-    Chromosome((genes.slice(0, r) :+ genes(r).mutation(10)) ++ genes.slice(r + 1, genes.length))
+  def neighbour(r: Int, mutationSize: Int)(implicit mutationPointLike: MutationPointLike) = {
+    Chromosome((genes.slice(0, r) :+ genes(r).mutation(mutationSize)) ++ genes.slice(r + 1, genes.length))
   }
 
   private def shuffle(g1: Gene, g2: Gene): (Gene, Gene) = {
