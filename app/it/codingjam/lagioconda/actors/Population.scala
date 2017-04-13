@@ -161,9 +161,10 @@ object Population {
   def hillClimb(pop: Population, gene: Int, lenght: Int)(implicit fitnessFunction: FitnessFunction,
                                                          mutationPointLike: MutationPointLike,
                                                          dimensions: ImageDimensions): Population = {
-    var hillClimber = pop.bestIndividual
+    val best = pop.bestIndividual
+    var hillClimber = pop.randomElite
     val firstHillClimber = hillClimber
-    val firstFitness = firstHillClimber.fitness
+    val startingFitness = firstHillClimber.fitness
     val r = gene // Random.nextInt(Chromosome.numberOfGenes)
     println("HillC  " + pop.generation + " / " + pop.newBestAtGeneration)
 
@@ -178,15 +179,22 @@ object Population {
       }
     }
 
-    if (firstFitness < hillClimber.fitness) {
-      val list = (List(hillClimber) ++ pop.individuals).take(Population.Size)
-      val total = list.map(_.fitness).sum
-      println("Hill clim OK at " + (pop.generation))
-      Population(pop.generation, list, total, pop.newBestAtGeneration, bestReason = "hillclimb")
+    if (startingFitness < hillClimber.fitness) {
+      val list = (pop.individuals :+ hillClimber)
+      val selected = list.sorted(Ordering[IndividualState]).reverse.take(Population.Size)
+      val total = selected.map(_.fitness).sum
+
+      if (best != selected.head) {
+        println("Hill clim new best at " + (pop.generation))
+        Population(pop.generation, selected, total, pop.newBestAtGeneration, bestReason = "hillclimb")
+      } else {
+        println("Hill climb improved elite at " + pop.generation)
+        // todo: Use copy
+        Population(pop.generation, selected, total, pop.newBestAtGeneration, bestReason = pop.bestReason)
+      }
     } else {
       println("hill climb failed at " + (pop.generation + 1))
       pop
     }
   }
-
 }
