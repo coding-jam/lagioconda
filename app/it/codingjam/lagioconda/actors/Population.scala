@@ -18,7 +18,8 @@ case class Population(generation: Int,
                      selection: SelectionFunction,
                      mutation: MutationPointLike,
                      dimension: ImageDimensions,
-                     crossover: CrossoverPointLike): Population = {
+                     crossover: CrossoverPointLike,
+                     temperature: Temperature): Population = {
     var temp = this.crossOver().mutation()
     val oldBest = this.individuals.head
     var newBest = temp.individuals.head
@@ -57,17 +58,18 @@ case class Population(generation: Int,
     Population(generation, sort(newIndividuals), totalFitness, newBestAtGeneration, bestReason)
   }
 
-  def mutation()(implicit fitnessFunction: FitnessFunction, mutation: MutationPointLike): Population = {
+  def mutation()(implicit fitnessFunction: FitnessFunction, mutation: MutationPointLike, temperature: Temperature): Population = {
     val splitted = individuals.splitAt(Population.EliteCount)
     var newIndividuals = splitted._1 // start with elite
 
-    val chanceOfMutation = 5
+    val chanceOfMutation = 100 * temperature.degrees
+    val mutations = (Chromosome.numberOfGenes * temperature.degrees).toInt
 
     Range(Population.EliteCount, Population.Size).foreach { i =>
       val individual = individuals(i)
       val r = Random.nextInt(100)
       if (r < chanceOfMutation) {
-        val mutated = individual.chromosome.mutate(mutation, 40)
+        val mutated = individual.chromosome.mutate(mutation, mutations)
         val fitness = fitnessFunction.fitness(mutated)
         newIndividuals = newIndividuals :+ IndividualState(mutated, fitness, "mutation")
       } else {
@@ -139,8 +141,8 @@ case class Population(generation: Int,
 
 object Population {
 
-  val Size = 200
-  val EliteCount = 10
+  val Size = 50
+  val EliteCount = 4
   val IncrementBeforeCut = (Size * 10.0 / 100.0).toInt
   //val NumberOfMutatingGenes: Int = (Size * 50.0 / 100.0).toInt
 

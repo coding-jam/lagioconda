@@ -9,7 +9,7 @@ import it.codingjam.lagioconda.actors.PopulationActor.{Migrate, Migration, Migra
 import it.codingjam.lagioconda.actors.SocketActor.{GenerationRan, PopulationGenerated}
 import it.codingjam.lagioconda.domain.{Configuration, ImageDimensions}
 import it.codingjam.lagioconda.fitness.ByteComparisonFitness
-import it.codingjam.lagioconda.ga.{RandomCrossoverPoint, RandomMutationPoint}
+import it.codingjam.lagioconda.ga.{Temperature, RandomCrossoverPoint, RandomMutationPoint}
 import it.codingjam.lagioconda.protocol.Messages.Individual
 import org.apache.commons.codec.binary.Base64OutputStream
 import it.codingjam.lagioconda.conversions.ChromosomeToBufferedImage
@@ -39,6 +39,7 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
   implicit val selection = new WheelSelection
 
   var best: Option[IndividualState] = None
+  implicit var temperature = Temperature(1.0)
 
   override def receive: Receive = {
     case cmd: SetupPopulation =>
@@ -53,6 +54,8 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
     case cmd: PopulationActor.RunAGeneration =>
       val oldFitness = state.meanFitness
       val oldBest = best
+
+      temperature = temperature.decrease
 
       state = state.nextGeneration
       /*log.debug("Mean fitness for population {}@{} is {}, {}",
