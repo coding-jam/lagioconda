@@ -25,7 +25,7 @@ case class Population(generation: Int,
     var newBest = temp.individuals.head
 
     if (generation - newBestAtGeneration > 10) {
-      temp = Population.hillClimb(temp, generation % Chromosome.numberOfGenes, 20)
+      temp = Population.hillClimb(temp, generation % Chromosome.numberOfGenes, (Population.Size * 0.05).toInt)
       newBest = temp.individuals.head
     }
 
@@ -168,13 +168,11 @@ object Population {
     val firstHillClimber = hillClimber
     val startingFitness = firstHillClimber.fitness
     val r = gene // Random.nextInt(Chromosome.numberOfGenes)
-    println("HillC  " + pop.generation + " / " + pop.newBestAtGeneration)
-
-    val size = (pop.generation - pop.newBestAtGeneration).max(24)
+    // println("HillC  " + pop.generation + " / " + pop.newBestAtGeneration)
 
     // doing a hill climbing phase last like a single population generation
     Range(0, lenght).foreach { i =>
-      val neighbour = hillClimber.chromosome.neighbour(r, size)
+      val neighbour = hillClimber.chromosome.neighbour(r, 5)
       val fitness = fitnessFunction.fitness(neighbour)
       if (fitness > hillClimber.fitness) {
         hillClimber = IndividualState(neighbour, fitness, "hillclimb")
@@ -187,15 +185,15 @@ object Population {
       val total = selected.map(_.fitness).sum
 
       if (best != selected.head) {
-        println("Hill clim new best at " + (pop.generation))
+        // println("Hill clim new best at " + (pop.generation))
         Population(pop.generation, selected, total, pop.newBestAtGeneration, bestReason = "hillclimb")
       } else {
-        println("Hill climb improved elite at " + pop.generation)
+        // println("Hill climb improved elite at " + pop.generation)
         // todo: Use copy
         Population(pop.generation, selected, total, pop.newBestAtGeneration, bestReason = pop.bestReason)
       }
     } else {
-      println("hill climb failed at " + (pop.generation + 1))
+      // println("hill climb failed at " + (pop.generation + 1))
       pop
     }
   }

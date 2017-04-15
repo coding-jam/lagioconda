@@ -61,7 +61,7 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
       state = state.nextGeneration
 
       temperature = Temperature(((1.0 - state.individuals.head.fitness) / (1.0 - initialBest)))
-      log.debug("Temperature " + temperature)
+      //log.debug("Temperature " + temperature)
 
       best = state.individuals.headOption
       best.foreach { b =>
@@ -106,13 +106,16 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
 
   def updateUI(b: IndividualState)(implicit configuration: Configuration): Unit = {
     val bi = b.chromosome.toBufferedImage()
+
+    import it.codingjam.lagioconda.conversions._
+
     val os = new ByteArrayOutputStream()
     val b64 = new Base64OutputStream(os)
 
     ImageIO.write(bi, "png", b64)
     val image = os.toString("UTF-8")
 
-    val s = s"Fitness: ${format(b.fitness * 100)}%, generation: ${state.generation}, reason ${state.bestReason}"
+    val s = s"Fit: ${format(b.fitness * 100)}%, generation: ${state.generation}, reason ${state.bestReason}"
 
     out ! Individual(generation = generation, image = image, population = index, info = s)
   }

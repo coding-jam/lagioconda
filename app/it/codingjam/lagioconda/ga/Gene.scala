@@ -25,7 +25,7 @@ case class Gene(binaryString: String) {
 
     val g = this.fold(5)
     val range = Range(mp, mp + bitsToMutate)
-    val mutated = binaryString.toCharArray.zipWithIndex
+    val mutated = g.binaryString.toCharArray.zipWithIndex
       .map { i =>
         if (range.contains(i._2)) flip(i._1) else (i._1).toString
       }
