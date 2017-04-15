@@ -39,6 +39,7 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
   implicit val selection = new WheelSelection
 
   var best: Option[IndividualState] = None
+  var initialBest = 0.0
   implicit var temperature = Temperature(1.0)
 
   override def receive: Receive = {
@@ -48,22 +49,19 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
       best = state.individuals.headOption
       best.foreach(updateUI(_))
 
-      log.debug("Initial Mean fitness {}", format(state.meanFitness))
+      initialBest = state.individuals.head.fitness
+      log.debug("Initial Mean fitness {}", state.meanFitness)
+      log.debug("Initial Best {}", initialBest)
       sender() ! PopulationGenerated(cmd.index, state.generation)
 
     case cmd: PopulationActor.RunAGeneration =>
       val oldFitness = state.meanFitness
       val oldBest = best
 
-      temperature = temperature.decrease
-
       state = state.nextGeneration
-      /*log.debug("Mean fitness for population {}@{} is {}, {}",
-                cmd.index,
-                state.generation,
-                format(state.meanFitness),
-                compareFitnesses(oldFitness, state.meanFitness))
-       */
+
+      temperature = Temperature(((1.0 - state.individuals.head.fitness) / (1.0 - initialBest)))
+      log.debug("Temperature " + temperature)
 
       best = state.individuals.headOption
       best.foreach { b =>
