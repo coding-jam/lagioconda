@@ -7,8 +7,6 @@ import java.nio.{ByteBuffer, IntBuffer}
 
 import it.codingjam.lagioconda.domain._
 import it.codingjam.lagioconda.ga.{Gene, _}
-import org.bytedeco.javacpp.opencv_core._
-import org.bytedeco.javacpp.opencv_imgproc._
 
 package object conversions {
 
@@ -97,32 +95,6 @@ package object conversions {
 
       image
     }
-
-  }
-
-  implicit class BufferedImageToMat(bi: BufferedImage) {
-    def toMat: Mat = {
-      val raster = bi.getRaster()
-
-      val dataBuffer = raster.getDataBuffer()
-
-      val pixelData: Array[Int] =
-        dataBuffer.asInstanceOf[DataBufferInt].getData
-      val byteBuffer = ByteBuffer.allocate(pixelData.length * 4)
-      byteBuffer.asIntBuffer().put(IntBuffer.wrap(pixelData))
-
-      val width = bi.getWidth()
-      val height = bi.getHeight()
-
-      val colors = bi.getColorModel().getNumComponents()
-      val mat = new Mat(byteBuffer.array(), false).reshape(colors, width)
-
-      val mat3c = new Mat(width, height, CV_8UC3)
-      cvtColor(mat, mat3c, COLOR_BGRA2BGR)
-
-      mat3c
-    }
-
   }
 
 }

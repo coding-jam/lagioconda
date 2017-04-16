@@ -151,7 +151,7 @@ object Population {
     var list: List[IndividualState] = List()
 
     Range(0, Size).foreach { i =>
-      val c: Chromosome = RandomChromosome.generate()
+      val c: Chromosome = RandomChromosome.generate(47)
       val fitness = fitnessFunction.fitness(c)
       val individual = IndividualState(c, fitness, "random")
       list = list :+ individual

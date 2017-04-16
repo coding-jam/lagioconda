@@ -1,14 +1,12 @@
 package it.codingjam.lagioconda.ga
 
-import it.codingjam.lagioconda.domain.Configuration
-
 import scala.util.Random
 
 object RandomGene {
 
-  def generate()(implicit configuration: Configuration): Gene =
+  def generate(length: Int): Gene =
     Gene(
-      Range(0, configuration.length)
+      Range(0, length)
         .map(_ => Random.nextBoolean())
         .map(if (_) "1" else "0")
         .mkString(""))

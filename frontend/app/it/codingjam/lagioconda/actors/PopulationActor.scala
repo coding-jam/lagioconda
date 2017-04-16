@@ -22,7 +22,8 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
   var n = 0
   var index = -1
 
-  val file = new File("resources/monalisasmall2.png")
+  val file = new File("frontend/resources/monalisasmall2.png")
+  println("*** " + file.getAbsolutePath)
 
   val reference = ImageIO.read(file)
 

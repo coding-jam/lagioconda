@@ -1,7 +1,5 @@
 package it.codingjam.lagioconda.ga
 
-import it.codingjam.lagioconda.domain.Configuration
-
 import scala.collection.immutable.Seq
 
 case class Gene(binaryString: String) {

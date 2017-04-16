@@ -1,21 +1,16 @@
 package it.codingjam.lagioconda.actors
 
-import java.time.temporal.TemporalUnit
-import java.time.{Instant, LocalDateTime, Period}
-import java.util.Date
+import java.time.{Duration => JavaDuration, Instant}
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import it.codingjam.lagioconda.actors.PopulationActor.{MigrationDone, SetupPopulation}
 import it.codingjam.lagioconda.actors.SocketActor._
 import it.codingjam.lagioconda.protocol.InEvent
 import it.codingjam.lagioconda.protocol.Messages.{Start, Statistics}
-import it.codingjam.lagioconda.services.ImageGenerator
-import java.time.{Duration => JavaDuration}
 
-import scala.util.Random
 import scala.concurrent.duration._
 
-class SocketActor(out: ActorRef, imageGenerator: ImageGenerator) extends Actor with ActorLogging {
+class SocketActor(out: ActorRef) extends Actor with ActorLogging {
 
   implicit val executor = context.system.dispatcher
 
@@ -105,8 +100,8 @@ class SocketActor(out: ActorRef, imageGenerator: ImageGenerator) extends Actor w
 }
 
 object SocketActor {
-  def props(out: ActorRef, ig: ImageGenerator) =
-    Props(new SocketActor(out, ig))
+  def props(out: ActorRef) =
+    Props(new SocketActor(out))
 
   case object GenerateAction
 
