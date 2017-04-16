@@ -24,7 +24,7 @@ case class Population(generation: Int,
     val oldBest = this.individuals.head
     var newBest = temp.individuals.head
 
-    if (generation - newBestAtGeneration > 10) {
+    if (generation - newBestAtGeneration > 3) {
       temp = Population.hillClimb(temp, generation % Chromosome.numberOfGenes, (Population.Size * 0.05).toInt)
       newBest = temp.individuals.head
     }
@@ -63,13 +63,14 @@ case class Population(generation: Int,
     var newIndividuals = splitted._1 // start with elite
 
     val chanceOfMutation = 100 * temperature.degrees
-    val mutations = (Chromosome.numberOfGenes * temperature.degrees).toInt
+    val geneMutation = (120 * temperature.degrees).toInt
+    val numberOfGenes = (Chromosome.numberOfGenes * 0.4 + temperature.degrees).toInt
 
     Range(Population.EliteCount, Population.Size).foreach { i =>
       val individual = individuals(i)
       val r = Random.nextInt(100)
       if (r < chanceOfMutation) {
-        val mutated = individual.chromosome.mutate(mutation, mutations)
+        val mutated = individual.chromosome.mutate(numberOfGenes)(mutation, geneMutation)
         val fitness = fitnessFunction.fitness(mutated)
         newIndividuals = newIndividuals :+ IndividualState(mutated, fitness, "mutation")
       } else {

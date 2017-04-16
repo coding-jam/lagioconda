@@ -14,6 +14,11 @@ package object conversions {
 
   implicit class CircleToGene(circle: Circle) {
 
+    private def to6bits(i: Int) = {
+      require(i >= 0 && i < 64)
+      "%07d".format(i.toBinaryString.toInt)
+    }
+
     private def to7bits(i: Int) = {
       require(i >= 0 && i < 128)
       "%07d".format(i.toBinaryString.toInt)
@@ -38,7 +43,7 @@ package object conversions {
       val list = List(
         to8bits(circle.center.x),
         to8bits(circle.center.y),
-        to7bits(circle.radius),
+        to6bits(circle.radius),
         to8bits(circle.color.red),
         to8bits(circle.color.green),
         to8bits(circle.color.blue)
@@ -55,10 +60,10 @@ package object conversions {
     def toCircle(implicit configuration: Configuration): Circle = {
       val x = parse(gene.binaryString.substring(0, 8))
       val y = parse(gene.binaryString.substring(8, 16))
-      val radius = parse(gene.binaryString.substring(16, 23))
-      val red = parse(gene.binaryString.substring(23, 31))
-      val green = parse(gene.binaryString.substring(31, 39))
-      val blue = parse(gene.binaryString.substring(39, 47))
+      val radius = parse(gene.binaryString.substring(16, 22))
+      val red = parse(gene.binaryString.substring(22, 30))
+      val green = parse(gene.binaryString.substring(30, 38))
+      val blue = parse(gene.binaryString.substring(38, 46))
       Circle(Center(x, y), radius, Color(red, green, blue, configuration.alpha))
     }
   }

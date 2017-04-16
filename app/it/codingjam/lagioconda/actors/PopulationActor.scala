@@ -30,7 +30,7 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
   convertedImg.getGraphics().drawImage(reference, 0, 0, null)
 
   val referenceInByte = convertedImg.getRaster().getDataBuffer().asInstanceOf[DataBufferByte].getData()
-  implicit val configuration = Configuration(alpha = 32, length = 48)
+  implicit val configuration = Configuration(alpha = 80, length = 48)
 
   implicit val dimension = ImageDimensions(reference.getWidth, reference.getHeight)
   implicit val fitnessFunction = new ByteComparisonFitness(referenceInByte)
@@ -47,7 +47,7 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
       state = Population.randomGeneration()
       index = cmd.index
       best = state.individuals.headOption
-      best.foreach(updateUI(_))
+      best.foreach(updateUI(_, best.get.fitness))
 
       initialBest = state.individuals.head.fitness
       log.debug("Initial Mean fitness {}", state.meanFitness)
@@ -67,7 +67,7 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
       best.foreach { b =>
         oldBest.foreach { old =>
           if (b.fitness > old.fitness) {
-            updateUI(b)
+            updateUI(b, b.fitness - old.fitness)
             //log.debug("New best for population {}@{} is {}", cmd.index, state.generation, format(b.fitness))
           }
         }
@@ -88,7 +88,7 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
       best.foreach { b =>
         oldBest.foreach { old =>
           if (b.fitness > old.fitness) {
-            updateUI(b)
+            updateUI(b, b.fitness - old.fitness)
             //log.debug("New best after migration for population {}@{} is {}", index, state.generation, format(b.fitness))
           }
         }
@@ -104,7 +104,7 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
 
   private def format(d: Double) = f"$d%1.3f"
 
-  def updateUI(b: IndividualState)(implicit configuration: Configuration): Unit = {
+  def updateUI(b: IndividualState, increment: Double)(implicit configuration: Configuration): Unit = {
     val bi = b.chromosome.toBufferedImage()
 
     import it.codingjam.lagioconda.conversions._
@@ -117,6 +117,7 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
 
     val s = s"Fit: ${format(b.fitness * 100)}%, generation: ${state.generation}, reason ${state.bestReason}"
 
+    log.debug("Reason {}, increment {}", state.bestReason, increment)
     out ! Individual(generation = generation, image = image, population = index, info = s)
   }
 }
