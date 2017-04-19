@@ -4,7 +4,7 @@ import NativePackagerHelper._
 val commonSettings = Seq(
   organization := "it.codingjam",
   version := "0.0.1",
-  scalaVersion := "2.11.7")
+  scalaVersion := "2.11.8")
 
 
 lazy val root = (project in file("."))
@@ -22,10 +22,23 @@ lazy val common = (project in file("common"))
   )
 
 
+lazy val backend = (project in file("backend"))
+  .settings(
+  name := "backend",
+    fork in run := true,
+    javaOptions ++= Seq(
+      "-Djava.library.path=" + (baseDirectory.value.getParentFile / "backend" / "sigar" ).getAbsolutePath,
+      "-Xms128m", "-Xmx512m"),
+    libraryDependencies ++= (Dependencies.common),
+  commonSettings
+  ).dependsOn(common)
+
+
 lazy val frontend = (project in file("frontend"))
   .enablePlugins(PlayScala, BuildInfoPlugin, JavaAppPackaging)
   .settings(
-    name := "cluster-play-frontend",
+    name := "frontend",
+    routesGenerator := InjectedRoutesGenerator,
     libraryDependencies ++= (Dependencies.frontend  ++ Seq(filters, cache)),
     javaOptions ++= Seq(
       "-Djava.library.path=" + (baseDirectory.value.getParentFile / "backend" / "sigar" ).getAbsolutePath,
@@ -57,6 +70,10 @@ libraryDependencies ++= Seq(
 //compile in Compile <<= (compile in Compile).dependsOn(scalafmt)
 
 javaOptions ++= Seq("-Xmx4g")
+
+PlayKeys.externalizeResources := false
+
+routesGenerator := InjectedRoutesGenerator
 
 scalacOptions in ThisBuild ++= Seq(
   "-target:jvm-1.8",

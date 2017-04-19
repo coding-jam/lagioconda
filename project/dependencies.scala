@@ -3,10 +3,11 @@ import sbt._
 object Dependencies {
 
   object Version {
-    val akka = "2.4.1"
+    val akka = "2.4.17"
+    val macWire = "2.3.0"
   }
 
-  lazy val frontend = common ++ webjars ++ tests
+  lazy val frontend = common ++ webjars ++ logging ++ tests
   lazy val backend = common ++ metrics ++ tests
 
   val common = Seq(
@@ -33,8 +34,11 @@ object Dependencies {
   
   val tests = Seq(
     "org.scalatest" %% "scalatest" % "2.2.4" % "test",
-    "org.scalatestplus" %% "play" % "1.4.0-M3" % "test",
     "com.typesafe.akka" %% "akka-testkit" % Version.akka % "test"
+  )
+
+  val logging = Seq(
+    "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0"
   )
 
 }
