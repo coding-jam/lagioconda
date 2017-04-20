@@ -1,11 +1,17 @@
 package it.codingjam.ga
 
+import akka.actor.{ActorRef, ActorSelection}
 import it.codingjam.lagioconda.domain.{Configuration, ImageDimensions}
 import it.codingjam.lagioconda.fitness.FitnessFunction
 import it.codingjam.lagioconda.ga._
 import it.codingjam.lagioconda.models.IndividualState
+import akka.pattern.ask
+import it.codingjam.ga.protocol.Messages.{CalculateFitness, CalculatedFitness}
 
+import scala.collection.immutable
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Random
+import scala.concurrent.duration._
 
 case class Population(generation: Int,
                       individuals: List[IndividualState],
@@ -14,13 +20,13 @@ case class Population(generation: Int,
                       bestReason: String,
                       trend: String = "") {
 
-  def nextGeneration(implicit fitnessFunction: FitnessFunction,
-                     selection: SelectionFunction,
-                     mutation: MutationPointLike,
-                     dimension: ImageDimensions,
-                     crossover: CrossoverPointLike,
-                     temperature: Temperature): Population = {
-    var temp = this.crossOver().mutation()
+  def nextGeneration(a: ActorSelection, ec: ExecutionContext)(implicit fitnessFunction: FitnessFunction,
+                                                              selection: SelectionFunction,
+                                                              mutation: MutationPointLike,
+                                                              dimension: ImageDimensions,
+                                                              crossover: CrossoverPointLike,
+                                                              temperature: Temperature): Population = {
+    var temp = this.crossOver(a, ec).mutation()
     val oldBest = this.individuals.head
     var newBest = temp.individuals.head
 
@@ -36,23 +42,32 @@ case class Population(generation: Int,
 
   }
 
-  def crossOver()(implicit fitnessFunction: FitnessFunction,
-                  selection: SelectionFunction,
-                  dimension: ImageDimensions,
-                  crossover: CrossoverPointLike): Population = {
+  def crossOver(a: ActorSelection, ec: ExecutionContext)(implicit fitnessFunction: FitnessFunction,
+                                                         selection: SelectionFunction,
+                                                         dimension: ImageDimensions,
+                                                         crossover: CrossoverPointLike): Population = {
+    implicit val to2 = akka.util.Timeout(3.seconds)
+    implicit val e = ec
 
     val splitted = individuals.splitAt(Population.EliteCount)
     var newIndividuals = splitted._1 // start with elite
-    Range(Population.EliteCount, Population.Size).foreach { i =>
+    val offsprings = Range(Population.EliteCount, Population.Size).map { i =>
       val selected = selection.select(this)
+      individuals(i).chromosome.uniformCrossover(selected.chromosome)
+    }.toList
 
-      val offspring = individuals(i).chromosome.uniformCrossover(selected.chromosome)
-      val fitness = fitnessFunction.fitness(offspring)
-
-      val newIndividual = IndividualState(offspring, fitness, "crossover")
-      newIndividuals = newIndividuals :+ newIndividual
-
+    val futures: immutable.Seq[Future[IndividualState]] = offsprings.map { chromosome =>
+      (a ? CalculateFitness(chromosome)).mapTo[CalculatedFitness].map { cf =>
+        IndividualState(cf.chromosome, cf.fitness, "crossover")
+      }
     }
+
+    val future: Future[immutable.Seq[IndividualState]] = Future.sequence(futures)
+
+    val l: List[IndividualState] = Await.result(future, 5.seconds).toList
+
+    newIndividuals = newIndividuals ++ l
+
     val totalFitness: Double = newIndividuals.map(_.fitness).sum
 
     Population(generation, sort(newIndividuals), totalFitness, newBestAtGeneration, bestReason)

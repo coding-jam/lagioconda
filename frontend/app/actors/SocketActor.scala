@@ -1,8 +1,8 @@
 package it.codingjam.lagioconda.actors
 
-import java.time.{Duration => JavaDuration, Instant}
+import java.time.{Instant, Duration => JavaDuration}
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSelection, Props}
 import it.codingjam.lagioconda.actors.PopulationActor.{MigrationDone, SetupPopulation}
 import it.codingjam.lagioconda.actors.SocketActor._
 import it.codingjam.lagioconda.protocol.InEvent
@@ -24,6 +24,13 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
   val startedAt: Instant = Instant.now()
   self ! Start(0)
 
+  FitnessService.startOn(context.system)
+
+  val service: ActorSelection = {
+    val path = context.system / "fitnessService"
+    context actorSelection path
+  }
+
   context.system.scheduler.schedule(1.seconds, statisticsRate.milliseconds, self, PrintStatistics)
 
   override def receive = {
@@ -34,7 +41,7 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
           Range(0, MaxPopulation).foreach { i =>
             val a =
               context.actorOf(PopulationActor
-                                .props(out)
+                                .props(service, out)
                                 .withDispatcher("population-actor-dispatcher"),
                               name = "pop" + i)
             populationActors = populationActors :+ a

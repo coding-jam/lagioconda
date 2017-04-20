@@ -4,7 +4,7 @@ import java.awt.image.{BufferedImage, DataBufferByte}
 import java.io.{ByteArrayOutputStream, File}
 import javax.imageio.ImageIO
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSelection, Props}
 import it.codingjam.ga.{Population, WheelSelection}
 import it.codingjam.lagioconda.actors.PopulationActor.{Migrate, Migration, MigrationDone, SetupPopulation}
 import it.codingjam.lagioconda.actors.SocketActor.{GenerationRan, PopulationGenerated}
@@ -16,14 +16,14 @@ import org.apache.commons.codec.binary.Base64OutputStream
 import it.codingjam.lagioconda.conversions.ChromosomeToBufferedImage
 import it.codingjam.lagioconda.models.IndividualState
 
-class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
+class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with ActorLogging {
 
   var state = Population(0, List[IndividualState](), 0.0, 0, "???")
   var generation = 0
   var n = 0
   var index = -1
 
-  val file = new File("frontend/resources/monalisasmall2.png")
+  val file = new File("frontend/public/images/monalisasmall2.png")
 
   val reference = ImageIO.read(file)
 
@@ -59,7 +59,7 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
       val oldFitness = state.meanFitness
       val oldBest = best
 
-      state = state.nextGeneration
+      state = state.nextGeneration(service, context.dispatcher)
 
       temperature = Temperature(((1.0 - state.individuals.head.fitness) / (1.0 - initialBest)))
       //log.debug("Temperature " + temperature)
@@ -126,7 +126,7 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
 
 object PopulationActor {
 
-  def props(out: ActorRef) = Props(new PopulationActor(out))
+  def props(service: ActorSelection, out: ActorRef): Props = Props(new PopulationActor(service, out))
 
   case class SetupPopulation(index: Int)
 

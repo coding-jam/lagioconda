@@ -20,6 +20,8 @@ object Backend extends App {
     "akka.remote.netty.tcp.port" -> port
   )
 
+  println("PORT " + port)
+
   val system = ActorSystem("application",
                            (ConfigFactory
                              .parseMap(properties))

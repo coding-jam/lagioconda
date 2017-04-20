@@ -8,6 +8,6 @@ object Messages {
 
   case class CalculateFitness(chromosome: Chromosome) extends Message
 
-  case class CalculatedFitness(fitness: Double) extends Message
+  case class CalculatedFitness(chromosome: Chromosome, fitness: Double) extends Message
 
 }
