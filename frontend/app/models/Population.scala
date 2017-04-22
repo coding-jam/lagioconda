@@ -27,7 +27,7 @@ case class Population(generation: Int,
                                                               dimension: ImageDimensions,
                                                               crossover: CrossoverPointLike,
                                                               temperature: Temperature): Population = {
-    var temp = this.crossOver(a, ec).mutation(a, ec)
+    var temp = this.crossOver(a, ec)
     val oldBest = this.individuals.head
     var newBest = temp.individuals.head
 
@@ -46,7 +46,9 @@ case class Population(generation: Int,
   def crossOver(a: ActorSelection, ec: ExecutionContext)(implicit fitnessFunction: FitnessFunction,
                                                          selection: SelectionFunction,
                                                          dimension: ImageDimensions,
-                                                         crossover: CrossoverPointLike): Population = {
+                                                         mutation: MutationPointLike,
+                                                         crossover: CrossoverPointLike,
+                                                         temperature: Temperature): Population = {
     implicit val to2 = akka.util.Timeout(3.seconds)
     implicit val e = ec
 
@@ -57,9 +59,23 @@ case class Population(generation: Int,
       individuals(i).chromosome.uniformCrossover(selected.chromosome)
     }.toList
 
-    val futures: immutable.Seq[Future[IndividualState]] = offsprings.map { chromosome =>
+    val chanceOfMutation = 100 * temperature.degrees
+
+    val geneMutation = (120 * temperature.degrees).toInt
+    val numberOfGenes = (Chromosome.numberOfGenes * 0.4 + temperature.degrees).toInt
+
+    val mutationList: List[Chromosome] = offsprings.map { individual =>
+      val r = Random.nextInt(100)
+
+      if (r < chanceOfMutation)
+        individual.mutate(numberOfGenes)(mutation, geneMutation)
+      else
+        individual
+    }
+
+    val futures: immutable.Seq[Future[IndividualState]] = mutationList.map { chromosome =>
       (a ? CalculateFitness(chromosome, generation)).mapTo[CalculatedFitness].map { cf =>
-        IndividualState(cf.chromosome, cf.fitness, "crossover")
+        IndividualState(cf.chromosome, cf.fitness, "m/c")
       }
     }
 
