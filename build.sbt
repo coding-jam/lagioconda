@@ -28,7 +28,7 @@ lazy val backend = (project in file("backend"))
     fork in run := true,
     javaOptions ++= Seq(
       "-Djava.library.path=" + (baseDirectory.value.getParentFile / "backend" / "sigar" ).getAbsolutePath,
-      "-Xms192m", "-Xmx192m"),
+      "-Xms128m", "-Xmx128m"),
     libraryDependencies ++= (Dependencies.common),
   commonSettings
   ).dependsOn(common)
