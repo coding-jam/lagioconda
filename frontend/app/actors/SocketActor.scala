@@ -74,7 +74,10 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
       populationActors(msg.index) ! PopulationActor.RunAGeneration(msg.index)
 
     case msg @ PrintStatistics =>
-      val rate = (generationCounter - oldGenerationCounter) * (1000.0 / statisticsRate.toDouble)
+      val d = JavaDuration.between(startedAt, Instant.now)
+      val u = List(d.getSeconds)
+
+      val rate = generationCounter.toDouble / d.getSeconds
       oldGenerationCounter = generationCounter
       val output = List(
         s"Current generation: ${generationCounter}",

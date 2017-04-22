@@ -14,7 +14,7 @@ class FitnessService extends Actor with ActorLogging {
   val backend = context.actorOf(FromConfig.props(), name = "fitnessRouter")
 
   def receive = {
-    case msg @ CalculateFitness(_) => backend forward msg
+    case msg @ CalculateFitness(_, _) => backend forward msg
   }
 }
 

@@ -10,6 +10,8 @@ import it.codingjam.lagioconda.backend.domain.{ByteComparisonFitness, Configurat
 
 class WorkerActor extends Actor with ActorLogging {
 
+  println("this is " + self.path)
+
   val file = new File("src/main/resources/monalisasmall2.png")
 
   println("file " + file.getAbsolutePath)
@@ -26,7 +28,7 @@ class WorkerActor extends Actor with ActorLogging {
 
   def receive = {
     case message: CalculateFitness =>
-      log.debug("asked for fitness")
+      println("generation " + message.generation + " chromosome " + message.chromosome.hashCode())
       sender() ! CalculatedFitness(message.chromosome, fitnessFunction.fitness(message.chromosome))
     case x =>
       log.error("Undefined command {}", x)
@@ -37,6 +39,6 @@ class WorkerActor extends Actor with ActorLogging {
 
 object ServiceBackend {
 
-  def startOn(system: ActorSystem) { system.actorOf(Props[WorkerActor], name = "fitnessService") }
+  def startOn(system: ActorSystem) { system.actorOf(Props[WorkerActor], name = "fitnessBackend") }
 
 }

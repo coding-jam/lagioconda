@@ -13,5 +13,15 @@ Then at root folder type
 ```sbt run```
 
 Open a browser at http://localhost:9000. When the page is downloaded, algorithm starts.
+
+
+## Getting Started
+
+Run each line in a new terminal.
+
+```
+sbt "backend/run 2551"
+sbt "backend/run 2552"
+sbt "project frontend" run
  
 

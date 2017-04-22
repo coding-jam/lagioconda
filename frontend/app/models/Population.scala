@@ -6,6 +6,7 @@ import it.codingjam.lagioconda.fitness.FitnessFunction
 import it.codingjam.lagioconda.ga._
 import it.codingjam.lagioconda.models.IndividualState
 import akka.pattern.ask
+import akka.util.Timeout
 import it.codingjam.ga.protocol.Messages.{CalculateFitness, CalculatedFitness}
 
 import scala.collection.immutable
@@ -26,7 +27,7 @@ case class Population(generation: Int,
                                                               dimension: ImageDimensions,
                                                               crossover: CrossoverPointLike,
                                                               temperature: Temperature): Population = {
-    var temp = this.crossOver(a, ec).mutation()
+    var temp = this.crossOver(a, ec).mutation(a, ec)
     val oldBest = this.individuals.head
     var newBest = temp.individuals.head
 
@@ -57,7 +58,7 @@ case class Population(generation: Int,
     }.toList
 
     val futures: immutable.Seq[Future[IndividualState]] = offsprings.map { chromosome =>
-      (a ? CalculateFitness(chromosome)).mapTo[CalculatedFitness].map { cf =>
+      (a ? CalculateFitness(chromosome, generation)).mapTo[CalculatedFitness].map { cf =>
         IndividualState(cf.chromosome, cf.fitness, "crossover")
       }
     }
@@ -73,30 +74,56 @@ case class Population(generation: Int,
     Population(generation, sort(newIndividuals), totalFitness, newBestAtGeneration, bestReason)
   }
 
-  def mutation()(implicit fitnessFunction: FitnessFunction, mutation: MutationPointLike, temperature: Temperature): Population = {
+  def mutation(a: ActorSelection, ec: ExecutionContext)(implicit fitnessFunction: FitnessFunction,
+                                                        mutation: MutationPointLike,
+                                                        temperature: Temperature): Population = {
+
+    implicit val to2 = akka.util.Timeout(3.seconds)
+    implicit val e = ec
+
     val splitted = individuals.splitAt(Population.EliteCount)
-    var newIndividuals = splitted._1 // start with elite
+    val elite = splitted._1 // start with elite
 
     val chanceOfMutation = 100 * temperature.degrees
 
     val geneMutation = (120 * temperature.degrees).toInt
     val numberOfGenes = (Chromosome.numberOfGenes * 0.4 + temperature.degrees).toInt
 
-    Range(Population.EliteCount, Population.Size).foreach { i =>
+    val list: List[Either[Chromosome, IndividualState]] = Range(Population.EliteCount, Population.Size).map { i =>
       val individual = individuals(i)
       val r = Random.nextInt(100)
-      if (r < chanceOfMutation) {
-        val mutated = individual.chromosome.mutate(numberOfGenes)(mutation, geneMutation)
-        val fitness = fitnessFunction.fitness(mutated)
-        newIndividuals = newIndividuals :+ IndividualState(mutated, fitness, "mutation")
-      } else {
-        newIndividuals = newIndividuals :+ individual
-      }
-    }
+
+      if (r < chanceOfMutation)
+        Left(individual.chromosome.mutate(numberOfGenes)(mutation, geneMutation))
+      else
+        Right(individual)
+    }.toList
+
+    val l: (List[Chromosome], List[IndividualState]) = splitEitherList(list)
+
+    val f = fitness(a, l._1, generation)
+
+    val newIndividuals = elite ++ f ++ l._2
+
     val totalFitness: Double = newIndividuals.map(_.fitness).sum
 
     Population(generation, sort(newIndividuals), totalFitness, newBestAtGeneration, bestReason)
 
+  }
+
+  private def fitness(a: ActorSelection, list: List[Chromosome], generation: Int)(implicit t: Timeout, ec: ExecutionContext) = {
+    val futures: immutable.Seq[Future[IndividualState]] = list.map { chromosome =>
+      (a ? CalculateFitness(chromosome, generation)).mapTo[CalculatedFitness].map { cf =>
+        IndividualState(cf.chromosome, cf.fitness, "mutation")
+      }
+    }
+    val future: Future[immutable.Seq[IndividualState]] = Future.sequence(futures)
+    Await.result(future, 5.seconds).toList
+  }
+
+  private def splitEitherList[A, B](el: List[Either[A, B]]) = {
+    val (lefts, rights) = el.partition(_.isLeft)
+    (lefts.map(_.left.get), rights.map(_.right.get))
   }
 
   private def sort(list: List[IndividualState]) = list.sorted(Ordering[IndividualState]).reverse
