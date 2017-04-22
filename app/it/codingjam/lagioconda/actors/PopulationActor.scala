@@ -109,6 +109,8 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
 
     import it.codingjam.lagioconda.conversions._
 
+    def format2(d: Double) = f"$d%1.5f"
+
     val os = new ByteArrayOutputStream()
     val b64 = new Base64OutputStream(os)
 
@@ -117,7 +119,7 @@ class PopulationActor(out: ActorRef) extends Actor with ActorLogging {
 
     val s = s"Fit: ${format(b.fitness * 100)}%, generation: ${state.generation}, reason ${state.bestReason}"
 
-    log.debug("Reason {}, increment {}", state.bestReason, increment)
+    log.debug("R: {}, Incr {}", state.bestReason, format2(increment))
     out ! Individual(generation = generation, image = image, population = index, info = s)
   }
 }
