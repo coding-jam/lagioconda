@@ -31,8 +31,11 @@ case class Population(generation: Int,
     val oldBest = this.individuals.head
     var newBest = temp.individuals.head
 
-    if (generation - newBestAtGeneration > 3) {
-      temp = Population.hillClimb(temp, generation % Chromosome.numberOfGenes, (Population.Size * 0.05).toInt)
+    if (generation - newBestAtGeneration > 10) {
+      temp = Population.hillClimb(pop = temp,
+                                  gene = generation % Chromosome.numberOfGenes,
+                                  lenght = (Population.Size * 0.05).toInt,
+                                  temperature = temperature)
       newBest = temp.individuals.head
     }
 
@@ -201,8 +204,8 @@ case class Population(generation: Int,
 
 object Population {
 
-  val Size = 50
-  val EliteCount = 4
+  val Size = 100
+  val EliteCount = 20
   val IncrementBeforeCut = (Size * 10.0 / 100.0).toInt
   //val NumberOfMutatingGenes: Int = (Size * 50.0 / 100.0).toInt
 
@@ -220,11 +223,11 @@ object Population {
     Population(0, list.sorted(Ordering[IndividualState].reverse), list.map(_.fitness).sum, 0, "random")
   }
 
-  def hillClimb(pop: Population, gene: Int, lenght: Int)(implicit fitnessFunction: FitnessFunction,
-                                                         mutationPointLike: MutationPointLike,
-                                                         dimensions: ImageDimensions): Population = {
+  def hillClimb(pop: Population, gene: Int, lenght: Int, temperature: Temperature)(implicit fitnessFunction: FitnessFunction,
+                                                                                   mutationPointLike: MutationPointLike,
+                                                                                   dimensions: ImageDimensions): Population = {
     val best = pop.bestIndividual
-    var hillClimber = pop.randomElite
+    var hillClimber = pop.individuals(Random.nextInt((pop.individuals.size * temperature.degrees).toInt))
     val firstHillClimber = hillClimber
     val startingFitness = firstHillClimber.fitness
     val r = gene // Random.nextInt(Chromosome.numberOfGenes)

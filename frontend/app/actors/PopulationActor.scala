@@ -48,7 +48,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
       state = Population.randomGeneration()
       index = cmd.index
       best = state.individuals.headOption
-      best.foreach(updateUI(_, 0.0))
+      best.foreach(updateUI(_, 0.0, state.generation))
 
       initialBest = state.individuals.head.fitness
       log.debug("Initial Mean fitness {}", state.meanFitness)
@@ -68,7 +68,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
       best.foreach { b =>
         oldBest.foreach { old =>
           if (b.fitness > old.fitness) {
-            updateUI(b, b.fitness - old.fitness)
+            updateUI(b, b.fitness - old.fitness, state.generation)
             //log.debug("New best for population {}@{} is {}", cmd.index, state.generation, format(b.fitness))
           }
         }
@@ -89,7 +89,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
       best.foreach { b =>
         oldBest.foreach { old =>
           if (b.fitness > old.fitness) {
-            updateUI(b, b.fitness - old.fitness)
+            updateUI(b, b.fitness - old.fitness, state.generation)
             //log.debug("New best after migration for population {}@{} is {}", index, state.generation, format(b.fitness))
           }
         }
@@ -105,7 +105,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
 
   private def format(d: Double) = f"$d%1.3f"
 
-  def updateUI(b: IndividualState, increment: Double)(implicit configuration: Configuration): Unit = {
+  def updateUI(b: IndividualState, increment: Double, generation: Int)(implicit configuration: Configuration): Unit = {
 
     def format2(d: Double) = f"$d%1.5f"
 
@@ -118,7 +118,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
     val image = os.toString("UTF-8")
 
     val s = s"Fit: ${format(b.fitness * 100)}%, generation: ${state.generation}, reason ${state.bestReason}"
-    log.debug("Reason {}, increment {}", state.bestReason, format2(increment))
+    log.debug("Generation {}, reason {}, increment {}", generation, state.bestReason, format2(increment))
 
     out ! Individual(generation = generation, image = image, population = index, info = s)
   }
