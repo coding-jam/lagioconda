@@ -14,7 +14,7 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
 
   implicit val executor = context.system.dispatcher
 
-  val MaxPopulation = 1
+  val MaxPopulation = 3
 
   var populationActors: List[ActorRef] = List()
   var generationCounter = 0

@@ -91,43 +91,7 @@ case class Population(generation: Int,
     Population(generation, sort(newIndividuals), totalFitness, newBestAtGeneration, bestReason)
   }
 
-  def mutation(a: ActorSelection, ec: ExecutionContext)(implicit fitnessFunction: FitnessFunction,
-                                                        mutation: MutationPointLike,
-                                                        temperature: Temperature): Population = {
-
-    implicit val e = ec
-
-    val splitted = individuals.splitAt(Population.EliteCount)
-    val elite = splitted._1 // start with elite
-
-    val chanceOfMutation = 100 * temperature.degrees
-
-    val geneMutation = (120 * temperature.degrees).toInt
-    val numberOfGenes = (Chromosome.numberOfGenes * 0.4 + temperature.degrees).toInt
-
-    val list: List[Either[Chromosome, IndividualState]] = Range(Population.EliteCount, Population.Size).map { i =>
-      val individual = individuals(i)
-      val r = Random.nextInt(100)
-
-      if (r < chanceOfMutation)
-        Left(individual.chromosome.mutate(numberOfGenes)(mutation, geneMutation))
-      else
-        Right(individual)
-    }.toList
-
-    val l: (List[Chromosome], List[IndividualState]) = splitEitherList(list)
-
-    val f = fitness(a, l._1, generation, "Mutation")
-
-    val newIndividuals = elite ++ f ++ l._2
-
-    val totalFitness: Double = newIndividuals.map(_.fitness).sum
-
-    Population(generation, sort(newIndividuals), totalFitness, newBestAtGeneration, bestReason)
-
-  }
-
-  def hillclimb(a: ActorSelection, ec: ExecutionContext, temperature: Temperature, length: Int, gene: Int)(
+  private def hillclimb(a: ActorSelection, ec: ExecutionContext, temperature: Temperature, length: Int, gene: Int)(
       implicit mutation: MutationPointLike): Population = {
 
     implicit val e = ec
