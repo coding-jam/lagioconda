@@ -76,12 +76,11 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
       sender() ! GenerationRan(cmd.index, state.generation)
 
     case cmd: Migrate =>
-      val l = Range(0, cmd.number).map(_ => state.randomIndividual).toList
+      val l = List(state.randomNotElite)
       cmd.otherPopulation ! Migration(l)
       sender ! MigrationDone(index)
 
     case cmd: Migration =>
-      val oldFitness = state.meanFitness
       val oldBest = best
       state = state.addIndividuals(cmd.list)
       //log.debug("Mean fitness after migration for population {}@{} is {}", index, state.generation, format(state.meanFitness))
@@ -118,7 +117,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
     val image = os.toString("UTF-8")
 
     val s = s"Fit: ${format(b.fitness * 100)}%, generation: ${state.generation}, reason ${state.bestReason}"
-    log.debug("Generation {}, reason {}, increment {}", generation, state.bestReason, format2(increment))
+    log.debug("Generation {}, reason {}, increment {}", generation, state.bestReason, format2(increment * 100))
 
     out ! Individual(generation = generation, image = image, population = index, info = s)
   }

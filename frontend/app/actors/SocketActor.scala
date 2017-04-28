@@ -9,12 +9,13 @@ import it.codingjam.lagioconda.protocol.InEvent
 import it.codingjam.lagioconda.protocol.Messages.{Start, Statistics}
 
 import scala.concurrent.duration._
+import scala.util.Random
 
 class SocketActor(out: ActorRef) extends Actor with ActorLogging {
 
   implicit val executor = context.system.dispatcher
 
-  val MaxPopulation = 3
+  val MaxPopulation = 4
 
   var populationActors: List[ActorRef] = List()
   var generationCounter = 0
@@ -52,19 +53,18 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
 
     case msg: GenerationRan =>
       generationCounter += 1
-      /*
-      if (Random.nextInt(10000000000000000) < 1) {
+
+      if (generationCounter % 400 == 0) {
         val r = Random.nextInt(populationActors.size)
         val destination =
           if (r == msg.index)
             (r + 1) % populationActors.size
           else
             r
-        populationActors(msg.index) ! PopulationActor.Migrate(msg.index, Population.Size / 20, populationActors(destination))
+        populationActors(msg.index) ! PopulationActor.Migrate(msg.index, 1, populationActors(destination))
 
       } else
-       */
-      populationActors(msg.index) ! PopulationActor.RunAGeneration(msg.index)
+        populationActors(msg.index) ! PopulationActor.RunAGeneration(msg.index)
 
     case msg: PopulationGenerated =>
       generationCounter += 1
@@ -77,10 +77,10 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
       val d = JavaDuration.between(startedAt, Instant.now)
       val u = List(d.getSeconds)
 
-      val rate = generationCounter.toDouble / d.getSeconds
+      val rate = generationCounter.toDouble / MaxPopulation.toDouble / d.getSeconds
       oldGenerationCounter = generationCounter
       val output = List(
-        s"Current generation: ${generationCounter}",
+        s"Current generation: ${generationCounter / MaxPopulation}",
         s"Rate: Generation/s = ${rate}",
         timeDifference()
       ).mkString("<br/>")

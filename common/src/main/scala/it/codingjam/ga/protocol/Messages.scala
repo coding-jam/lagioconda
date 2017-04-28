@@ -6,8 +6,8 @@ trait Message {}
 
 object Messages {
 
-  case class CalculateFitness(chromosome: Chromosome, generation: Int) extends Message
+  case class CalculateFitness(chromosome: Chromosome, generation: Int, reason: String) extends Message
 
-  case class CalculatedFitness(chromosome: Chromosome, fitness: Double) extends Message
+  case class CalculatedFitness(chromosome: Chromosome, reason: String, fitness: Double) extends Message
 
 }

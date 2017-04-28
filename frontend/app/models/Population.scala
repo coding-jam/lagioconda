@@ -32,7 +32,7 @@ case class Population(generation: Int,
     val oldBest = this.individuals.head
     var newBest = temp.individuals.head
 
-    if (generation - newBestAtGeneration > 10) {
+    if (generation - newBestAtGeneration > 100) {
       temp = temp.hillclimb(a, ec, temperature, 5, generation % Chromosome.numberOfGenes)
       newBest = temp.individuals.head
     }
@@ -60,23 +60,23 @@ case class Population(generation: Int,
       individuals(i).chromosome.uniformCrossover(selected.chromosome)
     }.toList
 
-    val chanceOfMutation = 100 * temperature.degrees
+    val chanceOfMutation = 5 * temperature.degrees
 
-    val geneMutation = (120 * temperature.degrees).toInt
-    val numberOfGenes = (Chromosome.numberOfGenes * 0.4 + temperature.degrees).toInt
+    val mutationSize = 1
+    val times = Math.min(1, (Chromosome.numberOfGenes * 0.05 * temperature.degrees)).toInt
 
-    val mutationList: List[Chromosome] = offsprings.map { individual =>
+    val mutationList: List[(Chromosome, String)] = offsprings.map { individual =>
       val r = Random.nextInt(100)
 
       if (r < chanceOfMutation)
-        individual.mutate(numberOfGenes)(mutation, geneMutation)
+        (individual.mutate(times)(mutation, mutationSize), "mutation")
       else
-        individual
+        (individual, "crossover")
     }
 
     val futures: immutable.Seq[Future[IndividualState]] = mutationList.map { chromosome =>
-      (a ? CalculateFitness(chromosome, generation)).mapTo[CalculatedFitness].map { cf =>
-        IndividualState(cf.chromosome, cf.fitness, "m/c")
+      (a ? CalculateFitness(chromosome._1, generation, chromosome._2)).mapTo[CalculatedFitness].map { cf =>
+        IndividualState(cf.chromosome, cf.fitness, cf.reason)
       }
     }
 
@@ -119,8 +119,8 @@ case class Population(generation: Int,
 
   private def fitness(a: ActorSelection, list: List[Chromosome], generation: Int, reason: String)(implicit ec: ExecutionContext) = {
     val futures: immutable.Seq[Future[IndividualState]] = list.map { chromosome =>
-      (a ? CalculateFitness(chromosome, generation)).mapTo[CalculatedFitness].map { cf =>
-        IndividualState(cf.chromosome, cf.fitness, reason)
+      (a ? CalculateFitness(chromosome, generation, reason)).mapTo[CalculatedFitness].map { cf =>
+        IndividualState(cf.chromosome, cf.fitness, cf.reason)
       }
     }
     val future: Future[immutable.Seq[IndividualState]] = Future.sequence(futures)
@@ -147,6 +147,8 @@ case class Population(generation: Int,
 
   def randomIndividual: IndividualState =
     individuals(Random.nextInt(individuals.size))
+
+  def randomNotElite: IndividualState = individuals(Population.EliteCount + Random.nextInt(Population.Size - Population.EliteCount))
 
   def randomElite: IndividualState = individuals(Random.nextInt(Population.EliteCount))
 
@@ -183,16 +185,19 @@ case class Population(generation: Int,
   def meanFitness: Double = totalFitness / individuals.size
 
   def addIndividuals(list: List[IndividualState]) = {
-    val individuals = (this.individuals ++ list).sorted(Ordering[IndividualState]).reverse
-    Population(generation, individuals.take(Population.Size), 0.0, newBestAtGeneration, bestReason)
+    val l = list.map(i => IndividualState(i.chromosome, i.fitness, "migration"))
+
+    val individuals = (this.individuals ++ l).sorted(Ordering[IndividualState]).reverse.take(Population.Size)
+    val total = individuals.map(_.fitness).sum
+    Population(generation, individuals, total, newBestAtGeneration, bestReason)
   }
 
 }
 
 object Population {
 
-  val Size = 20
-  val EliteCount = 4
+  val Size = 15
+  val EliteCount = 3
   val IncrementBeforeCut = (Size * 10.0 / 100.0).toInt
   //val NumberOfMutatingGenes: Int = (Size * 50.0 / 100.0).toInt
 
