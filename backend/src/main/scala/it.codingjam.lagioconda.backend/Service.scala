@@ -28,7 +28,7 @@ class WorkerActor extends Actor with ActorLogging {
 
   def receive = {
     case message: CalculateFitness =>
-      println("generation " + message.generation + " chromosome " + message.chromosome.hashCode())
+      //println("generation " + message.generation + " chromosome " + message.chromosome.hashCode())
       sender() ! CalculatedFitness(message.chromosome, message.reason, fitnessFunction.fitness(message.chromosome))
     case x =>
       log.error("Undefined command {}", x)
