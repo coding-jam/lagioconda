@@ -18,6 +18,15 @@ case class Gene(binaryString: String) {
     (Gene(newGene1), Gene(newGene2))
   }
 
+  def neighbour(position: Int): Gene = {
+    val n = binaryString.toCharArray.zipWithIndex
+      .map { i =>
+        if (position == i._2) flip(i._1) else (i._1).toString
+      }
+      .mkString("")
+    Gene(n)
+  }
+
   def mutation(bitsToMutate: Int)(implicit mutationPoint: MutationPointLike): Gene = {
     val mp = mutationPoint.mutationPoint(binaryString.length)
 
@@ -52,4 +61,8 @@ case class Gene(binaryString: String) {
     Gene(string)
   }
 
+}
+
+object Gene {
+  var Length = 46
 }
