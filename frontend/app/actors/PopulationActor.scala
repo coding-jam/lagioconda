@@ -18,7 +18,7 @@ import it.codingjam.lagioconda.models.IndividualState
 
 class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with ActorLogging {
 
-  var state = Population(0, List[IndividualState](), 0.0, 0, "???")
+  var state = Population(0, List[IndividualState](), 0.0, 0, "???", 0, 0.0)
   var generation = 0
   var n = 0
   var index = -1
@@ -31,7 +31,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
   convertedImg.getGraphics().drawImage(reference, 0, 0, null)
 
   val referenceInByte = convertedImg.getRaster().getDataBuffer().asInstanceOf[DataBufferByte].getData()
-  implicit val configuration = Configuration(alpha = 64, length = 47)
+  implicit val configuration = Configuration(alpha = 80, length = 47)
 
   implicit val dimension = ImageDimensions(reference.getWidth, reference.getHeight)
   implicit val fitnessFunction = new ByteComparisonFitness(referenceInByte)

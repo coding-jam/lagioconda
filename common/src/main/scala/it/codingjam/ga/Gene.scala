@@ -21,10 +21,19 @@ case class Gene(binaryString: String) {
   def neighbour(position: Int): Gene = {
     val n = binaryString.toCharArray.zipWithIndex
       .map { i =>
-        if (position == i._2) flip(i._1) else (i._1).toString
+        if (position == i._2 || position + 1 == i._2) flip(i._1) else (i._1).toString
       }
       .mkString("")
     Gene(n)
+  }
+
+  def neighbour(position: Int, newChunck: String): Gene = {
+    val s = binaryString.splitAt(position)
+    val left = s._1
+    val right = s._2.drop(newChunck.size)
+    val ss = (left + newChunck + right).take(Gene.Length)
+    require(ss.length == Gene.Length, s"binary $binaryString, position $position, chunk $newChunck, left $left, right $right")
+    Gene(ss)
   }
 
   def mutation(bitsToMutate: Int)(implicit mutationPoint: MutationPointLike): Gene = {

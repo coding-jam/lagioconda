@@ -18,9 +18,11 @@ case class Population(generation: Int,
                       totalFitness: Double,
                       newBestAtGeneration: Int,
                       bestReason: String,
+                      hillClimbedGene: Int,
+                      lastIncrement: Double,
                       trend: String = "") {
 
-  implicit val to2 = akka.util.Timeout(3.seconds)
+  implicit val to2 = akka.util.Timeout(20.seconds)
 
   def nextGeneration(a: ActorSelection, ec: ExecutionContext)(implicit fitnessFunction: FitnessFunction,
                                                               selection: SelectionFunction,
@@ -31,16 +33,29 @@ case class Population(generation: Int,
     var temp = this.crossOver(a, ec)
     val oldBest = this.individuals.head
     var newBest = temp.individuals.head
+    val bitsToMutate = 5
 
-    if (generation - newBestAtGeneration > 100) {
-      temp = temp.hillclimb(a, ec, temperature, 5, generation % Chromosome.numberOfGenes)
+    if (generation > 10 && this.lastIncrement < 0.001 && (generation - newBestAtGeneration > 5)) {
+      temp = temp.hillClimb(a, ec, temperature, bitsToMutate, temp.hillClimbedGene)
       newBest = temp.individuals.head
     }
 
     if (oldBest.fitness < newBest.fitness)
-      Population(generation + 1, temp.individuals, temp.totalFitness, generation + 1, newBest.generatedBy)
+      Population(generation + 1,
+                 temp.individuals,
+                 temp.totalFitness,
+                 generation + 1,
+                 newBest.generatedBy,
+                 temp.hillClimbedGene,
+                 newBest.fitness - oldBest.fitness)
     else
-      Population(generation + 1, temp.individuals, temp.totalFitness, this.newBestAtGeneration, oldBest.generatedBy)
+      Population(generation + 1,
+                 temp.individuals,
+                 temp.totalFitness,
+                 this.newBestAtGeneration,
+                 oldBest.generatedBy,
+                 temp.hillClimbedGene,
+                 temp.lastIncrement)
 
   }
 
@@ -60,10 +75,13 @@ case class Population(generation: Int,
       individuals(i).chromosome.uniformCrossover(selected.chromosome)
     }.toList
 
-    val chanceOfMutation = 5 * temperature.degrees
+    val chanceOfMutation = 5 * (1 - temperature.degrees)
 
-    val mutationSize = 1
-    val times = Math.min(1, (Chromosome.numberOfGenes * 0.05 * temperature.degrees)).toInt
+    val mutationSize = Random.nextInt(6) + 1
+    val times = (10 * (1 - temperature.degrees)).toInt // Math.min(1, (Chromosome.numberOfGenes * 0.2 * temperature.degrees)).toInt
+
+    if (generation % 100 == 0)
+      println("Temperature " + temperature.degrees)
 
     val mutationList: List[(Chromosome, String)] = offsprings.map { individual =>
       val r = Random.nextInt(100)
@@ -82,37 +100,60 @@ case class Population(generation: Int,
 
     val future: Future[immutable.Seq[IndividualState]] = Future.sequence(futures)
 
-    val l: List[IndividualState] = Await.result(future, 5.seconds).toList
+    val l: List[IndividualState] = Await.result(future, 20.seconds).toList
 
     newIndividuals = newIndividuals ++ l
 
     val totalFitness: Double = newIndividuals.map(_.fitness).sum
 
-    Population(generation, sort(newIndividuals), totalFitness, newBestAtGeneration, bestReason)
+    Population(generation, sort(newIndividuals), totalFitness, newBestAtGeneration, bestReason, hillClimbedGene, lastIncrement)
   }
 
-  private def hillclimb(a: ActorSelection, ec: ExecutionContext, temperature: Temperature, length: Int, gene: Int)(
+  private def hillClimb(a: ActorSelection, ec: ExecutionContext, temperature: Temperature, bitsToMutate: Int, gene: Int)(
       implicit mutation: MutationPointLike): Population = {
 
     implicit val e = ec
+    println("Hill climb with gene " + gene)
 
-    var hillClimber = individuals(Random.nextInt((individuals.size * temperature.degrees).toInt))
+    var hillClimber = randomElite
+    //individuals(Random.nextInt((individuals.size * temperature.degrees).toInt))
 
-    val l = Range(0, length).map { i =>
-      hillClimber.chromosome.neighbour(gene, (5 * temperature.degrees).toInt)
-    }.toList
+    val list = List(0, 8, 16, 22, 30, 38)
+    val l = {
+      val r = Random.nextInt(6)
+      val g = list(r)
+      val y = if (r == 2) 6 else 8
+      val x = if (r == 2) 64 else 256
 
-    val f = fitness(a, l, generation, "hillclimb")
-    val bestNeightbour = sort(f).head
+      val format = s"%0${y}d"
 
-    if (bestIndividual.fitness < bestNeightbour.fitness) {
-      val selected = (List(bestNeightbour) ++ this.individuals).dropRight(1)
+      Range(0, x)
+        .map { number =>
+          format.format(number.toBinaryString.toInt)
+        }
+        .map { chunk =>
+          hillClimber.chromosome.neighbour(gene, g, chunk)
+        }
+        .toList
+    }
+
+    val f = fitness(a, l, generation, "hillClimb")
+    val bestNeighbour = sort(f).head
+
+    if (bestIndividual.fitness < bestNeighbour.fitness) {
+      val selected = (List(bestNeighbour) ++ this.individuals).dropRight(1)
       val total = selected.map(_.fitness).sum
+      println("Successfull Hill climb with gene " + gene)
 
-      // println("Hill clim new best at " + (pop.generation))
-      Population(generation, selected, total, newBestAtGeneration, bestReason = "hillclimb")
+      Population(generation,
+                 selected,
+                 total,
+                 newBestAtGeneration,
+                 bestReason = "hillClimb",
+                 gene,
+                 bestNeighbour.fitness - bestIndividual.fitness)
     } else {
-      this
+      this.copy(hillClimbedGene = ((hillClimbedGene + 1) % Chromosome.numberOfGenes))
     }
 
   }
@@ -124,7 +165,7 @@ case class Population(generation: Int,
       }
     }
     val future: Future[immutable.Seq[IndividualState]] = Future.sequence(futures)
-    Await.result(future, 5.seconds).toList
+    Await.result(future, 20.seconds).toList
   }
 
   private def splitEitherList[A, B](el: List[Either[A, B]]) = {
@@ -189,14 +230,14 @@ case class Population(generation: Int,
 
     val individuals = (this.individuals ++ l).sorted(Ordering[IndividualState]).reverse.take(Population.Size)
     val total = individuals.map(_.fitness).sum
-    Population(generation, individuals, total, newBestAtGeneration, bestReason)
+    Population(generation, individuals, total, newBestAtGeneration, bestReason, hillClimbedGene, lastIncrement)
   }
 
 }
 
 object Population {
 
-  val Size = 15
+  val Size = 40
   val EliteCount = 3
   val IncrementBeforeCut = (Size * 10.0 / 100.0).toInt
   //val NumberOfMutatingGenes: Int = (Size * 50.0 / 100.0).toInt
@@ -212,7 +253,7 @@ object Population {
       list = list :+ individual
     }
 
-    Population(0, list.sorted(Ordering[IndividualState].reverse), list.map(_.fitness).sum, 0, "random")
+    Population(0, list.sorted(Ordering[IndividualState].reverse), list.map(_.fitness).sum, 0, "random", 0, 0.0)
   }
 
 }

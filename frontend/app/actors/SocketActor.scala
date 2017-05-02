@@ -15,7 +15,7 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
 
   implicit val executor = context.system.dispatcher
 
-  val MaxPopulation = 4
+  val MaxPopulation = 1
 
   var populationActors: List[ActorRef] = List()
   var generationCounter = 0
@@ -36,6 +36,7 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
 
   override def receive = {
     case msg: InEvent =>
+      Thread.sleep(1000)
       if (populationActors.length == 0) {
         log.info(s"Starting generation of $MaxPopulation populations")
         if (populationActors.isEmpty) {
@@ -54,7 +55,7 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
     case msg: GenerationRan =>
       generationCounter += 1
 
-      if (generationCounter % 400 == 0) {
+      if (generationCounter % 40000 == 0) {
         val r = Random.nextInt(populationActors.size)
         val destination =
           if (r == msg.index)
