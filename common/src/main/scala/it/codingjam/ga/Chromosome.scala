@@ -79,6 +79,6 @@ case class Chromosome(genes: List[Gene]) {
 
 object Chromosome {
 
-  val numberOfGenes = 256
+  val numberOfGenes = 200
 
 }

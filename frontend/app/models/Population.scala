@@ -35,7 +35,7 @@ case class Population(generation: Int,
     var newBest = temp.individuals.head
     val bitsToMutate = 5
 
-    if (generation > 10 && this.lastIncrement < 0.001 && (generation - newBestAtGeneration > 5)) {
+    if (generation > 10 && this.lastIncrement < 0.001 && (generation - newBestAtGeneration > 50000)) {
       temp = temp.hillClimb(a, ec, temperature, bitsToMutate, temp.hillClimbedGene)
       newBest = temp.individuals.head
     }
@@ -70,18 +70,15 @@ case class Population(generation: Int,
 
     val splitted = individuals.splitAt(Population.EliteCount)
     var newIndividuals = splitted._1 // start with elite
-    val offsprings = Range(Population.EliteCount, Population.Size).map { i =>
-      val selected = selection.select(this)
-      individuals(i).chromosome.uniformCrossover(selected.chromosome)
+    val offsprings = Range(0, Population.Size).map { i =>
+      val selected1 = selection.select(this)
+      val selected2 = selection.select(this)
+      selected1.chromosome.uniformCrossover(selected2.chromosome)
     }.toList
 
-    val chanceOfMutation = 5 * (1 - temperature.degrees)
-
-    val mutationSize = Random.nextInt(6) + 1
-    val times = (10 * (1 - temperature.degrees)).toInt // Math.min(1, (Chromosome.numberOfGenes * 0.2 * temperature.degrees)).toInt
-
-    if (generation % 100 == 0)
-      println("Temperature " + temperature.degrees)
+    val chanceOfMutation = 5
+    val mutationSize = 1
+    val times = Random.nextInt(5) + 1
 
     val mutationList: List[(Chromosome, String)] = offsprings.map { individual =>
       val r = Random.nextInt(100)
@@ -237,8 +234,8 @@ case class Population(generation: Int,
 
 object Population {
 
-  val Size = 40
-  val EliteCount = 3
+  val Size = 150
+  val EliteCount = 25
   val IncrementBeforeCut = (Size * 10.0 / 100.0).toInt
   //val NumberOfMutatingGenes: Int = (Size * 50.0 / 100.0).toInt
 
