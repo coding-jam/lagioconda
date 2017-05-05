@@ -55,7 +55,7 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
     case msg: GenerationRan =>
       generationCounter += 1
 
-      if (generationCounter % 40000 == 0) {
+      if (generationCounter % 100000000 == 0) {
         val r = Random.nextInt(populationActors.size)
         val destination =
           if (r == msg.index)

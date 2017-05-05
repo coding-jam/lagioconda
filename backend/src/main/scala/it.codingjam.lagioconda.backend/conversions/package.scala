@@ -72,19 +72,11 @@ package object conversions {
 
       val image = new BufferedImage(dimensions.width, dimensions.height, BufferedImage.TYPE_3BYTE_BGR);
 
-      /*
-      val ge =
-        GraphicsEnvironment.getLocalGraphicsEnvironment();
-      val gd = ge.getDefaultScreenDevice();
-      val gc = gd.getDefaultConfiguration();
-      val image = gc.createCompatibleVolatileImage(16, 16);
-      image.validate(gc);
-       */
-
       val g2: Graphics2D = image.createGraphics()
 
-      val qualityHints = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+      val qualityHints = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF)
       qualityHints.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED)
+
       g2.setRenderingHints(qualityHints)
 
       circles.foreach { circle =>

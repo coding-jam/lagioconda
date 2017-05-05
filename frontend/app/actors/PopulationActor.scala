@@ -18,7 +18,7 @@ import it.codingjam.lagioconda.models.IndividualState
 
 class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with ActorLogging {
 
-  var state = Population(0, List[IndividualState](), 0.0, 0, "???", 0, 0.0)
+  var state = Population(0, List[IndividualState](), 0.0, 0, "???", 0, 0.0, List())
   var generation = 0
   var n = 0
   var index = -1
@@ -31,7 +31,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
   convertedImg.getGraphics().drawImage(reference, 0, 0, null)
 
   val referenceInByte = convertedImg.getRaster().getDataBuffer().asInstanceOf[DataBufferByte].getData()
-  implicit val configuration = Configuration(alpha = 80, length = 47)
+  implicit val configuration = Configuration(alpha = 64, length = 47)
 
   implicit val dimension = ImageDimensions(reference.getWidth, reference.getHeight)
   implicit val fitnessFunction = new ByteComparisonFitness(referenceInByte)
@@ -42,13 +42,14 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
   var best: Option[IndividualState] = None
   var initialBest = 0.0
   implicit var temperature = Temperature(1.0)
+  var last100results = List[Int]()
 
   override def receive: Receive = {
     case cmd: SetupPopulation =>
       state = Population.randomGeneration()
       index = cmd.index
       best = state.individuals.headOption
-      best.foreach(updateUI(_, 0.0, state.generation))
+      best.foreach(updateUI(_, 0.0, state.generation, 0.0))
 
       initialBest = state.individuals.head.fitness
       log.debug("Initial Mean fitness {}", state.meanFitness)
@@ -68,7 +69,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
       best.foreach { b =>
         oldBest.foreach { old =>
           if (b.fitness > old.fitness) {
-            updateUI(b, b.fitness - old.fitness, state.generation)
+            updateUI(b, b.fitness - old.fitness, state.generation, old.fitness)
             //log.debug("New best for population {}@{} is {}", cmd.index, state.generation, format(b.fitness))
           }
         }
@@ -76,20 +77,18 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
       sender() ! GenerationRan(cmd.index, state.generation)
 
     case cmd: Migrate =>
-      val l = List(state.randomNotElite)
+      val l = List(state.randomElite)
       cmd.otherPopulation ! Migration(l)
       sender ! MigrationDone(index)
 
     case cmd: Migration =>
       val oldBest = best
-      state = state.addIndividuals(cmd.list)
-      //log.debug("Mean fitness after migration for population {}@{} is {}", index, state.generation, format(state.meanFitness))
+      state = state.doMigration(cmd.list, service, context.dispatcher)
       best = state.individuals.headOption
       best.foreach { b =>
         oldBest.foreach { old =>
           if (b.fitness > old.fitness) {
-            updateUI(b, b.fitness - old.fitness, state.generation)
-            //log.debug("New best after migration for population {}@{} is {}", index, state.generation, format(b.fitness))
+            updateUI(b, b.fitness - old.fitness, state.generation, old.fitness)
           }
         }
       }
@@ -104,7 +103,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
 
   private def format(d: Double) = f"$d%1.3f"
 
-  def updateUI(b: IndividualState, increment: Double, generation: Int)(implicit configuration: Configuration): Unit = {
+  def updateUI(b: IndividualState, increment: Double, generation: Int, oldfitness: Double)(implicit configuration: Configuration): Unit = {
 
     def format2(d: Double) = f"$d%1.5f"
 
@@ -117,7 +116,11 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
     val image = os.toString("UTF-8")
 
     val s = s"Fit: ${format(b.fitness * 100)}%, generation: ${state.generation}, reason ${state.bestReason}"
-    log.debug("Generation {}, reason {}, increment {}", generation, state.bestReason, format2(increment * 100))
+    log.debug("Generation {}, reason {}, old fitness {}, increment {}",
+              generation,
+              state.bestReason,
+              format2(oldfitness * 100),
+              format2(increment * 100))
 
     out ! Individual(generation = generation, image = image, population = index, info = s)
   }

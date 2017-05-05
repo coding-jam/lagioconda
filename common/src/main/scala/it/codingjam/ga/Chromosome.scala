@@ -63,10 +63,6 @@ case class Chromosome(genes: List[Gene]) {
     Chromosome((genes.slice(0, gene) :+ genes(gene).neighbour(position)) ++ genes.slice(gene + 1, genes.length))
   }
 
-  def neighbour(gene: Int, position: Int, newChunk: String) = {
-    Chromosome((genes.slice(0, gene) :+ genes(gene).neighbour(position, newChunk)) ++ genes.slice(gene + 1, genes.length))
-  }
-
   private def shuffle(g1: Gene, g2: Gene): (Gene, Gene) = {
     val b = Random.nextBoolean()
     if (b)
@@ -79,6 +75,6 @@ case class Chromosome(genes: List[Gene]) {
 
 object Chromosome {
 
-  val numberOfGenes = 200
+  val numberOfGenes = 250
 
 }

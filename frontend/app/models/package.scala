@@ -51,18 +51,55 @@ package object conversions {
 
   }
 
+  def neigh(gene: Gene): List[Gene] = {
+
+    def to6bits(i: Int) = {
+      val k = (i + 64) % 64
+      "%06d".format(i.toBinaryString.toInt)
+    }
+
+    def to8bits(i: Int) = {
+      val k = (i + 256) % 256
+      "%08d".format(k.toBinaryString.toInt)
+    }
+
+    val t = toComponents(gene)
+    // shapeless where are you??
+    val l = List(t._1, t._2, t._3, t._4, t._5, t._6)
+
+    val ll = Range(0, 64)
+      .map(i => to6bits(i).split("").toList.map(_.toInt))
+      .toList
+
+    val o = ll.map(e => e.zip(l))
+
+    val k = o.map(e => e.map(x => x._1 + x._2)) ++ o.map(e => e.map(x => x._2 + x._1))
+
+    val oo = k.map(e => to8bits(e(0)) + to8bits(e(1)) + to6bits(e(2)) + to8bits(e(3)) + to8bits(e(4)) ++ to8bits(e(5)))
+
+    oo.map(Gene(_))
+
+  }
+
+  def toComponents(gene: Gene) = {
+
+    def parse(s: String) = Integer.parseInt(s, 2).toInt
+
+    val x = parse(gene.binaryString.substring(0, 8))
+    val y = parse(gene.binaryString.substring(8, 16))
+    val radius = parse(gene.binaryString.substring(16, 22))
+    val red = parse(gene.binaryString.substring(22, 30))
+    val green = parse(gene.binaryString.substring(30, 38))
+    val blue = parse(gene.binaryString.substring(38, 46))
+
+    (x, y, radius, red, green, blue)
+  }
+
   implicit class GeneToCircle(gene: Gene) {
 
-    private def parse(s: String) = Integer.parseInt(s, 2).toInt
-
     def toCircle(implicit configuration: Configuration): Circle = {
-      val x = parse(gene.binaryString.substring(0, 8))
-      val y = parse(gene.binaryString.substring(8, 16))
-      val radius = parse(gene.binaryString.substring(16, 22))
-      val red = parse(gene.binaryString.substring(22, 30))
-      val green = parse(gene.binaryString.substring(30, 38))
-      val blue = parse(gene.binaryString.substring(38, 46))
-      Circle(Center(x, y), radius, Color(red, green, blue, configuration.alpha))
+      val c = toComponents(gene)
+      Circle(Center(c._1, c._2), c._3, Color(c._4, c._5, c._6, configuration.alpha))
     }
   }
 
