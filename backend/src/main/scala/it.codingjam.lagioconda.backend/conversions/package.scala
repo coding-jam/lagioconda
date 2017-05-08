@@ -50,18 +50,26 @@ package object conversions {
 
   }
 
+  def toComponents(gene: Gene) = {
+
+    def parse(s: String) = Integer.parseInt(s, 2)
+
+    val x = parse(gene.binaryString.substring(0, 8))
+    val y = parse(gene.binaryString.substring(8, 16))
+    val radius = parse(gene.binaryString.substring(16, 21))
+    val red = parse(gene.binaryString.substring(21, 28)) * 2
+    val green = parse(gene.binaryString.substring(28, 35)) * 2
+    val blue = parse(gene.binaryString.substring(35, 42)) * 2
+    val alpha = parse(gene.binaryString.substring(42, 44))
+
+    (x, y, radius, red, green, blue, (alpha + 1) * 50)
+  }
+
   implicit class GeneToCircle(gene: Gene) {
 
-    private def parse(s: String) = Integer.parseInt(s, 2).toInt
-
     def toCircle(implicit configuration: Configuration): Circle = {
-      val x = parse(gene.binaryString.substring(0, 8))
-      val y = parse(gene.binaryString.substring(8, 16))
-      val radius = parse(gene.binaryString.substring(16, 21))
-      val red = parse(gene.binaryString.substring(21, 29))
-      val green = parse(gene.binaryString.substring(29, 37))
-      val blue = parse(gene.binaryString.substring(37, 45))
-      Circle(Center(x, y), radius, Color(red, green, blue, configuration.alpha))
+      val c = toComponents(gene)
+      Circle(Center(c._1, c._2), c._3, Color(c._4, c._5, c._6, c._7))
     }
   }
 

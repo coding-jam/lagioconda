@@ -52,9 +52,9 @@ package object conversions {
         to8bits(circle.center.x),
         to8bits(circle.center.y),
         to5bits(circle.radius),
-        to8bits(circle.color.red),
-        to8bits(circle.color.green),
-        to8bits(circle.color.blue),
+        to7bits(circle.color.red),
+        to7bits(circle.color.green),
+        to7bits(circle.color.blue),
         to2bits(circle.color.alpha)
       )
       Gene(list.mkString(""))
@@ -104,10 +104,10 @@ package object conversions {
     val x = parse(gene.binaryString.substring(0, 8))
     val y = parse(gene.binaryString.substring(8, 16))
     val radius = parse(gene.binaryString.substring(16, 21))
-    val red = parse(gene.binaryString.substring(21, 29))
-    val green = parse(gene.binaryString.substring(29, 37))
-    val blue = parse(gene.binaryString.substring(37, 45))
-    val alpha = parse(gene.binaryString.substring(45, 47))
+    val red = parse(gene.binaryString.substring(21, 28)) * 2
+    val green = parse(gene.binaryString.substring(28, 35)) * 2
+    val blue = parse(gene.binaryString.substring(35, 42)) * 2
+    val alpha = parse(gene.binaryString.substring(42, 44))
 
     (x, y, radius, red, green, blue, (alpha + 1) * 50)
   }
