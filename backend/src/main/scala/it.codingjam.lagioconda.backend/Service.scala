@@ -7,6 +7,7 @@ import javax.imageio.ImageIO
 import akka.actor._
 import it.codingjam.ga.protocol.Messages.{CalculateFitness, CalculatedFitness}
 import it.codingjam.lagioconda.backend.domain.{ByteComparisonFitness, Configuration, ImageDimensions}
+import it.codingjam.lagioconda.ga.Gene
 
 class WorkerActor extends Actor with ActorLogging {
 
@@ -22,7 +23,7 @@ class WorkerActor extends Actor with ActorLogging {
   convertedImg.getGraphics().drawImage(reference, 0, 0, null)
 
   val referenceInByte = convertedImg.getRaster().getDataBuffer().asInstanceOf[DataBufferByte].getData()
-  implicit val configuration = Configuration(alpha = 64, length = 47)
+  implicit val configuration = Configuration(alpha = 128, length = Gene.Size)
 
   implicit val fitnessFunction = new ByteComparisonFitness(referenceInByte)
 

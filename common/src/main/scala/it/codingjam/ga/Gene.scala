@@ -31,8 +31,8 @@ case class Gene(binaryString: String) {
     val s = binaryString.splitAt(position)
     val left = s._1
     val right = s._2.drop(newChunck.size)
-    val ss = (left + newChunck + right).take(Gene.Length)
-    require(ss.length == Gene.Length, s"binary $binaryString, position $position, chunk $newChunck, left $left, right $right")
+    val ss = (left + newChunck + right).take(Gene.Size)
+    require(ss.length == Gene.Size, s"binary $binaryString, position $position, chunk $newChunck, left $left, right $right")
     Gene(ss)
   }
 
@@ -73,5 +73,5 @@ case class Gene(binaryString: String) {
 }
 
 object Gene {
-  var Length = 46
+  var Size = 45
 }

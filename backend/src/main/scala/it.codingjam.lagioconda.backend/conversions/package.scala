@@ -57,10 +57,10 @@ package object conversions {
     def toCircle(implicit configuration: Configuration): Circle = {
       val x = parse(gene.binaryString.substring(0, 8))
       val y = parse(gene.binaryString.substring(8, 16))
-      val radius = parse(gene.binaryString.substring(16, 22))
-      val red = parse(gene.binaryString.substring(22, 30))
-      val green = parse(gene.binaryString.substring(30, 38))
-      val blue = parse(gene.binaryString.substring(38, 46))
+      val radius = parse(gene.binaryString.substring(16, 21))
+      val red = parse(gene.binaryString.substring(21, 29))
+      val green = parse(gene.binaryString.substring(29, 37))
+      val blue = parse(gene.binaryString.substring(37, 45))
       Circle(Center(x, y), radius, Color(red, green, blue, configuration.alpha))
     }
   }

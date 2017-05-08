@@ -25,7 +25,7 @@ class ConversionsTests extends WordSpecLike with MustMatchers {
       s.toCharArray.map(_.toInt).map(_ % 2).map(_.toString).mkString("")
     }
 
-    implicit val configuration = Configuration(alpha = 64, length = 50)
+    implicit val configuration = Configuration(alpha = 128, length = 50)
 
     val sampleCircle = Circle(Center(100, 300), 10, Color(120, 10, 30, configuration.alpha))
 

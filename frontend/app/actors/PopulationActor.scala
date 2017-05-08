@@ -10,7 +10,7 @@ import it.codingjam.lagioconda.actors.PopulationActor.{Migrate, Migration, Migra
 import it.codingjam.lagioconda.actors.SocketActor.{GenerationRan, PopulationGenerated}
 import it.codingjam.lagioconda.domain.{Configuration, ImageDimensions}
 import it.codingjam.lagioconda.fitness.ByteComparisonFitness
-import it.codingjam.lagioconda.ga.{RandomCrossoverPoint, RandomMutationPoint, Temperature}
+import it.codingjam.lagioconda.ga.{Gene, RandomCrossoverPoint, RandomMutationPoint, Temperature}
 import it.codingjam.lagioconda.protocol.Messages.Individual
 import org.apache.commons.codec.binary.Base64OutputStream
 import it.codingjam.lagioconda.conversions.ChromosomeToBufferedImage
@@ -31,7 +31,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
   convertedImg.getGraphics().drawImage(reference, 0, 0, null)
 
   val referenceInByte = convertedImg.getRaster().getDataBuffer().asInstanceOf[DataBufferByte].getData()
-  implicit val configuration = Configuration(alpha = 64, length = 47)
+  implicit val configuration = Configuration(alpha = 128, length = Gene.Size)
 
   implicit val dimension = ImageDimensions(reference.getWidth, reference.getHeight)
   implicit val fitnessFunction = new ByteComparisonFitness(referenceInByte)

@@ -53,6 +53,11 @@ package object conversions {
 
   def neigh(gene: Gene): List[Gene] = {
 
+    def to5bits(i: Int) = {
+      val k = (i + 32) % 32
+      "%05d".format(k.toBinaryString.toInt)
+    }
+
     def to6bits(i: Int) = {
       val k = (i + 64) % 64
       "%06d".format(k.toBinaryString.toInt)
@@ -75,7 +80,7 @@ package object conversions {
 
     val k = o.map(e => e.map(x => x._1 + x._2)) ++ o.map(e => e.map(x => x._2 - x._1))
 
-    val oo = k.map(e => to8bits(e(0)) + to8bits(e(1)) + to6bits(e(2)) + to8bits(e(3)) + to8bits(e(4)) ++ to8bits(e(5)))
+    val oo = k.map(e => to8bits(e(0)) + to8bits(e(1)) + to5bits(e(2)) + to8bits(e(3)) + to8bits(e(4)) ++ to8bits(e(5)))
 
     oo.map(Gene(_))
 
@@ -87,10 +92,10 @@ package object conversions {
 
     val x = parse(gene.binaryString.substring(0, 8))
     val y = parse(gene.binaryString.substring(8, 16))
-    val radius = parse(gene.binaryString.substring(16, 22))
-    val red = parse(gene.binaryString.substring(22, 30))
-    val green = parse(gene.binaryString.substring(30, 38))
-    val blue = parse(gene.binaryString.substring(38, 46))
+    val radius = parse(gene.binaryString.substring(16, 21))
+    val red = parse(gene.binaryString.substring(21, 29))
+    val green = parse(gene.binaryString.substring(29, 37))
+    val blue = parse(gene.binaryString.substring(37, 45))
 
     (x, y, radius, red, green, blue)
   }
