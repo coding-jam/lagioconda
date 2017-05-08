@@ -12,6 +12,16 @@ package object conversions {
 
   implicit class CircleToGene(circle: Circle) {
 
+    private def to2bits(i: Int) = {
+      require(i >= 0 && i < 4)
+      "%02d".format(i.toBinaryString.toInt)
+    }
+
+    private def to5bits(i: Int) = {
+      require(i >= 0 && i < 32)
+      "%05d".format(i.toBinaryString.toInt)
+    }
+
     private def to6bits(i: Int) = {
       require(i >= 0 && i < 64)
       "%06d".format(i.toBinaryString.toInt)
@@ -41,10 +51,11 @@ package object conversions {
       val list = List(
         to8bits(circle.center.x),
         to8bits(circle.center.y),
-        to7bits(circle.radius),
+        to5bits(circle.radius),
         to8bits(circle.color.red),
         to8bits(circle.color.green),
-        to8bits(circle.color.blue)
+        to8bits(circle.color.blue),
+        to2bits(circle.color.alpha)
       )
       Gene(list.mkString(""))
     }
@@ -63,7 +74,7 @@ package object conversions {
       "%06d".format(k.toBinaryString.toInt)
     }
 
-    def to8bits(i: Int) = {
+    def to8bits(i: Int): String = {
       val k = (i + 256) % 256
       "%08d".format(k.toBinaryString.toInt)
     }
@@ -80,7 +91,7 @@ package object conversions {
 
     val k = o.map(e => e.map(x => x._1 + x._2)) ++ o.map(e => e.map(x => x._2 - x._1))
 
-    val oo = k.map(e => to8bits(e(0)) + to8bits(e(1)) + to5bits(e(2)) + to8bits(e(3)) + to8bits(e(4)) ++ to8bits(e(5)))
+    val oo = k.map(e => to8bits(e(0)) + to8bits(e(1)) + to5bits(e(2)) + to8bits(e(3)) + to8bits(e(4)) + to8bits(e(5)) + "01")
 
     oo.map(Gene(_))
 
@@ -96,15 +107,16 @@ package object conversions {
     val red = parse(gene.binaryString.substring(21, 29))
     val green = parse(gene.binaryString.substring(29, 37))
     val blue = parse(gene.binaryString.substring(37, 45))
+    val alpha = parse(gene.binaryString.substring(45, 47))
 
-    (x, y, radius, red, green, blue)
+    (x, y, radius, red, green, blue, (alpha + 1) * 50)
   }
 
   implicit class GeneToCircle(gene: Gene) {
 
     def toCircle(implicit configuration: Configuration): Circle = {
       val c = toComponents(gene)
-      Circle(Center(c._1, c._2), c._3, Color(c._4, c._5, c._6, configuration.alpha))
+      Circle(Center(c._1, c._2), c._3, Color(c._4, c._5, c._6, c._7))
     }
   }
 
@@ -114,15 +126,6 @@ package object conversions {
       val circles: List[Circle] = chromosome.genes.map(_.toCircle)
 
       val image = new BufferedImage(dimensions.width, dimensions.height, BufferedImage.TYPE_3BYTE_BGR);
-
-      /*
-      val ge =
-        GraphicsEnvironment.getLocalGraphicsEnvironment();
-      val gd = ge.getDefaultScreenDevice();
-      val gc = gd.getDefaultConfiguration();
-      val image = gc.createCompatibleVolatileImage(16, 16);
-      image.validate(gc);
-       */
 
       val g2: Graphics2D = image.createGraphics()
 
