@@ -18,7 +18,7 @@ import it.codingjam.lagioconda.models.IndividualState
 
 class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with ActorLogging {
 
-  var state = Population(0, List[IndividualState](), 0.0, 0, "???", 0, 0.0, List())
+  var state = Population(0, List[IndividualState](), 0.0, 0, "???", 0, 0.0, List(), 0)
   var generation = 0
   var n = 0
   var index = -1
@@ -49,7 +49,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
       state = Population.randomGeneration()
       index = cmd.index
       best = state.individuals.headOption
-      best.foreach(updateUI(_, 0.0, state.generation, 0.0))
+      best.foreach(updateUI(cmd.index, _, 0.0, state.generation, 0.0, 0))
 
       initialBest = state.individuals.head.fitness
       log.debug("Initial Mean fitness {}", state.meanFitness)
@@ -69,7 +69,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
       best.foreach { b =>
         oldBest.foreach { old =>
           if (b.fitness > old.fitness) {
-            updateUI(b, b.fitness - old.fitness, state.generation, old.fitness)
+            updateUI(cmd.index, b, b.fitness - old.fitness, state.generation, old.fitness, 0)
             //log.debug("New best for population {}@{} is {}", cmd.index, state.generation, format(b.fitness))
           }
         }
@@ -77,18 +77,18 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
       sender() ! GenerationRan(cmd.index, state.generation)
 
     case cmd: Migrate =>
-      val l = List(state.randomElite)
-      cmd.otherPopulation ! Migration(l)
+      val l = Range(0, Population.EliteCount).map(_ => state.randomElite).toList
+      cmd.otherPopulation ! Migration(cmd.index, l, cmd.otherPopulationIndex)
       sender ! MigrationDone(index)
 
     case cmd: Migration =>
       val oldBest = best
-      state = state.doMigration(cmd.list, service, context.dispatcher)
+      state = state.doMigration(cmd.list, service, context.dispatcher, cmd.otherPopulationIndex)
       best = state.individuals.headOption
       best.foreach { b =>
         oldBest.foreach { old =>
           if (b.fitness > old.fitness) {
-            updateUI(b, b.fitness - old.fitness, state.generation, old.fitness)
+            updateUI(cmd.index, b, b.fitness - old.fitness, state.generation, old.fitness, cmd.otherPopulationIndex)
           }
         }
       }
@@ -103,7 +103,8 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
 
   private def format(d: Double) = f"$d%1.3f"
 
-  def updateUI(b: IndividualState, increment: Double, generation: Int, oldfitness: Double)(implicit configuration: Configuration): Unit = {
+  def updateUI(population: Int, b: IndividualState, increment: Double, generation: Int, oldfitness: Double, otherPopulationIndex: Int)(
+      implicit configuration: Configuration): Unit = {
 
     def format2(d: Double) = f"$d%1.5f"
 
@@ -115,12 +116,14 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
     ImageIO.write(bi, "png", b64)
     val image = os.toString("UTF-8")
 
-    val s = s"Fit: ${format(b.fitness * 100)}%, generation: ${state.generation}, reason ${state.bestReason}"
-    log.debug("Generation {}, reason {}, old fitness {}, increment {}",
-              generation,
-              state.bestReason,
-              format2(oldfitness * 100),
-              format2(increment * 100))
+    val s = s"Fit: ${format(b.fitness * 100)}%, g: ${state.generation}, reason ${state.bestReason}"
+    log.debug(
+      "Population {}, reason {}, old fitness {}, increment {}",
+      population + "/" + generation,
+      state.bestReason,
+      format2(oldfitness * 100),
+      format2(increment * 100)
+    )
 
     out ! Individual(generation = generation, image = image, population = index, info = s)
   }
@@ -140,9 +143,9 @@ object PopulationActor {
 
   case class RunAGeneration(index: Int)
 
-  case class Migrate(index: Int, number: Int, otherPopulation: ActorRef)
+  case class Migrate(index: Int, number: Int, otherPopulation: ActorRef, otherPopulationIndex: Int)
 
-  case class Migration(list: List[IndividualState])
+  case class Migration(index: Int, list: List[IndividualState], otherPopulationIndex: Int)
 
   case class MigrationDone(index: Int)
 

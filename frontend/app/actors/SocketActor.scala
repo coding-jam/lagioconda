@@ -15,12 +15,14 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
 
   implicit val executor = context.system.dispatcher
 
-  val MaxPopulation = 1
+  val MaxPopulation = 8
 
   var populationActors: List[ActorRef] = List()
   var generationCounter = 0
   var oldGenerationCounter = 0
   val statisticsRate = 500
+
+  var migrationMap = Range(0, MaxPopulation).map(i => i -> i).toList
 
   val startedAt: Instant = Instant.now()
   self ! Start(0)
@@ -55,14 +57,19 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
     case msg: GenerationRan =>
       generationCounter += 1
 
-      if (generationCounter % 100000000 == 0) {
-        val r = Random.nextInt(populationActors.size)
-        val destination =
-          if (r == msg.index)
-            (r + 1) % populationActors.size
-          else
-            r
-        populationActors(msg.index) ! PopulationActor.Migrate(msg.index, 1, populationActors(destination))
+      if (generationCounter % 2000 == 0) {
+        val h = migrationMap.head
+
+        val destination = (h._2 + 1) % MaxPopulation
+        val source = h._1
+
+        migrationMap = migrationMap.tail :+ (source -> destination)
+
+        if (destination != msg.index) {
+          log.debug("Migration from {} to {} at generation {}", source, destination, generationCounter)
+          populationActors(msg.index) ! PopulationActor.Migrate(source, 1, populationActors(destination), destination)
+        } else
+          populationActors(msg.index) ! PopulationActor.RunAGeneration(msg.index)
 
       } else
         populationActors(msg.index) ! PopulationActor.RunAGeneration(msg.index)

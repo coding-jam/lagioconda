@@ -55,7 +55,7 @@ package object conversions {
 
     def to6bits(i: Int) = {
       val k = (i + 64) % 64
-      "%06d".format(i.toBinaryString.toInt)
+      "%06d".format(k.toBinaryString.toInt)
     }
 
     def to8bits(i: Int) = {
@@ -68,12 +68,12 @@ package object conversions {
     val l = List(t._1, t._2, t._3, t._4, t._5, t._6)
 
     val ll = Range(0, 64)
-      .map(i => to6bits(i).split("").toList.map(_.toInt))
+      .map(i => to6bits(i).split("").toList.map(_.toInt * 16))
       .toList
 
     val o = ll.map(e => e.zip(l))
 
-    val k = o.map(e => e.map(x => x._1 + x._2)) ++ o.map(e => e.map(x => x._2 + x._1))
+    val k = o.map(e => e.map(x => x._1 + x._2)) ++ o.map(e => e.map(x => x._2 - x._1))
 
     val oo = k.map(e => to8bits(e(0)) + to8bits(e(1)) + to6bits(e(2)) + to8bits(e(3)) + to8bits(e(4)) ++ to8bits(e(5)))
 
