@@ -109,7 +109,7 @@ package object conversions {
     val blue = parse(gene.binaryString.substring(33, 39)) * 4
     val alpha = parse(gene.binaryString.substring(39, 41))
 
-    (x, y, radius, red, green, blue, (alpha + 1) * 40)
+    (x, y, radius, red, green, blue, 64 + (alpha * 40))
   }
 
   implicit class GeneToCircle(gene: Gene) {

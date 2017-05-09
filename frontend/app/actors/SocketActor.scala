@@ -15,7 +15,7 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
 
   implicit val executor = context.system.dispatcher
 
-  val MaxPopulation = 4
+  val MaxPopulation = 8
 
   var populationActors: List[ActorRef] = List()
   var generationCounter = 0
@@ -57,7 +57,7 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
     case msg: GenerationRan =>
       generationCounter += 1
 
-      if (generationCounter % (160 /MaxPopulation) == 0) {
+      if (generationCounter % (400 / MaxPopulation) == 0) {
         val h = migrationMap.head
 
         val destination = (h._2 + 1) % MaxPopulation

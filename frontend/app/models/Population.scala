@@ -184,7 +184,7 @@ case class Population(generation: Int,
 
     val chanceOfMutation = 5
     val mutationSize = 1
-    val times = Random.nextInt((Chromosome.numberOfGenes*0.1).toInt) + 1
+    val times = Random.nextInt((Chromosome.numberOfGenes * 0.1).toInt) + 1
 
     val mutationList: List[(Chromosome, String)] = offsprings.map { individual =>
       val r = Random.nextInt(100)
