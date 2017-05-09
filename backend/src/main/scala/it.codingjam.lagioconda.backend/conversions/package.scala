@@ -11,6 +11,11 @@ package object conversions {
 
   implicit class CircleToGene(circle: Circle) {
 
+    private def to5bits(i: Int) = {
+      require(i >= 0 && i < 32)
+      "%05d".format(i.toBinaryString.toInt)
+    }
+
     private def to6bits(i: Int) = {
       require(i >= 0 && i < 64)
       "%06d".format(i.toBinaryString.toInt)
@@ -40,10 +45,10 @@ package object conversions {
       val list = List(
         to8bits(circle.center.x),
         to8bits(circle.center.y),
-        to7bits(circle.radius),
-        to8bits(circle.color.red),
-        to8bits(circle.color.green),
-        to8bits(circle.color.blue)
+        to5bits(circle.radius),
+        to6bits(circle.color.red),
+        to6bits(circle.color.green),
+        to6bits(circle.color.blue)
       )
       Gene(list.mkString(""))
     }
@@ -57,12 +62,12 @@ package object conversions {
     val x = parse(gene.binaryString.substring(0, 8))
     val y = parse(gene.binaryString.substring(8, 16))
     val radius = parse(gene.binaryString.substring(16, 21))
-    val red = parse(gene.binaryString.substring(21, 28)) * 2
-    val green = parse(gene.binaryString.substring(28, 35)) * 2
-    val blue = parse(gene.binaryString.substring(35, 42)) * 2
-    val alpha = parse(gene.binaryString.substring(42, 44))
+    val red = parse(gene.binaryString.substring(21, 27)) * 4
+    val green = parse(gene.binaryString.substring(27, 33)) * 4
+    val blue = parse(gene.binaryString.substring(33, 39)) * 4
+    val alpha = parse(gene.binaryString.substring(39, 41))
 
-    (x, y, radius, red, green, blue, (alpha + 1) * 50)
+    (x, y, radius, red, green, blue, (alpha + 1) * 40)
   }
 
   implicit class GeneToCircle(gene: Gene) {

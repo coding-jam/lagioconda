@@ -73,5 +73,5 @@ case class Gene(binaryString: String) {
 }
 
 object Gene {
-  var Size = 44
+  var Size = 41
 }
