@@ -4,6 +4,7 @@ import java.awt.geom.Ellipse2D
 import java.awt.image.BufferedImage
 import java.awt.{Graphics2D, RenderingHints}
 
+import it.codingjam.ga.converter
 import it.codingjam.lagioconda.backend.domain._
 import it.codingjam.lagioconda.ga.{Gene, _}
 
@@ -55,25 +56,12 @@ package object conversions {
 
   }
 
-  def toComponents(gene: Gene) = {
 
-    def parse(s: String) = Integer.parseInt(s, 2)
-
-    val x = parse(gene.binaryString.substring(0, 8))
-    val y = parse(gene.binaryString.substring(8, 16))
-    val radius = parse(gene.binaryString.substring(16, 21))
-    val red = parse(gene.binaryString.substring(21, 27)) * 4
-    val green = parse(gene.binaryString.substring(27, 33)) * 4
-    val blue = parse(gene.binaryString.substring(33, 39)) * 4
-    val alpha = parse(gene.binaryString.substring(39, 41))
-
-    (x, y, radius, red, green, blue, (alpha + 1) * 40)
-  }
 
   implicit class GeneToCircle(gene: Gene) {
 
     def toCircle(implicit configuration: Configuration): Circle = {
-      val c = toComponents(gene)
+      val c = converter.toComponents(gene)
       Circle(Center(c._1, c._2), c._3, Color(c._4, c._5, c._6, c._7))
     }
   }

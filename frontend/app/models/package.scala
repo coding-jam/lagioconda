@@ -1,10 +1,10 @@
 package it.codingjam.lagioconda
 
-import java.awt.{Graphics2D, GraphicsEnvironment, RenderingHints}
 import java.awt.geom.Ellipse2D
-import java.awt.image.{BufferedImage, DataBufferInt}
-import java.nio.{ByteBuffer, IntBuffer}
+import java.awt.image.BufferedImage
+import java.awt.{Graphics2D, RenderingHints}
 
+import it.codingjam.ga.converter
 import it.codingjam.lagioconda.domain._
 import it.codingjam.lagioconda.ga.{Gene, _}
 
@@ -79,9 +79,9 @@ package object conversions {
       "%08d".format(k.toBinaryString.toInt)
     }
 
-    val t = toComponents(gene)
+    val t = converter.toComponents(gene)
     // shapeless where are you??
-    val l = List(t._1, t._2, t._3, t._4, t._5, t._6)
+    val l: List[Int] = List(t._1, t._2, t._3, t._4, t._5, t._6)
 
     val ll = Range(0, 64)
       .map(i => to6bits(i).split("").toList.map(_.toInt * 16))
@@ -97,25 +97,12 @@ package object conversions {
 
   }
 
-  def toComponents(gene: Gene) = {
 
-    def parse(s: String) = Integer.parseInt(s, 2).toInt
-
-    val x = parse(gene.binaryString.substring(0, 8))
-    val y = parse(gene.binaryString.substring(8, 16))
-    val radius = parse(gene.binaryString.substring(16, 21))
-    val red = parse(gene.binaryString.substring(21, 27)) * 4
-    val green = parse(gene.binaryString.substring(27, 33)) * 4
-    val blue = parse(gene.binaryString.substring(33, 39)) * 4
-    val alpha = parse(gene.binaryString.substring(39, 41))
-
-    (x, y, radius, red, green, blue, 64 + (alpha * 40))
-  }
 
   implicit class GeneToCircle(gene: Gene) {
 
     def toCircle(implicit configuration: Configuration): Circle = {
-      val c = toComponents(gene)
+      val c = converter.toComponents(gene)
       Circle(Center(c._1, c._2), c._3, Color(c._4, c._5, c._6, c._7))
     }
   }

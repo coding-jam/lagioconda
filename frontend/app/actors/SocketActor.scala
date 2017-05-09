@@ -57,7 +57,7 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
     case msg: GenerationRan =>
       generationCounter += 1
 
-      if (generationCounter % (400 / MaxPopulation) == 0) {
+      if (generationCounter % 100 == 0) {
         val h = migrationMap.head
 
         val destination = (h._2 + 1) % MaxPopulation
