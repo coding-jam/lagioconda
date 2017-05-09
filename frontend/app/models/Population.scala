@@ -129,7 +129,7 @@ case class Population(generation: Int,
     var newIndividuals = splitted._1 // start with elite
     val choice = Random.nextInt(list.size)
 
-    val offsprings = Range(0, Population.Size * 3).map { i =>
+    val offsprings = Range(0, Population.Size * 4).map { i =>
       val selected1 = list(choice)
       val selected2 = selection.select(this)
       selected1.chromosome.uniformCrossover(selected2.chromosome)
