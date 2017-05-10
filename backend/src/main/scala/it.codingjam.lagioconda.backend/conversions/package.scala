@@ -56,8 +56,6 @@ package object conversions {
 
   }
 
-
-
   implicit class GeneToCircle(gene: Gene) {
 
     def toCircle(implicit configuration: Configuration): Circle = {
