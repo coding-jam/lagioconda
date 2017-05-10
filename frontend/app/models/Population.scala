@@ -41,7 +41,7 @@ case class Population(generation: Int,
     var newBest = temp.individuals.head
     val bitsToMutate = 5
 
-    if (oldBest.fitness < newBest.fitness && this.generation % 5000000L == 0) {
+    if (oldBest.fitness < newBest.fitness && this.generation % 50 == 0) {
       temp = temp.hillClimb(a, ec, temperature, bitsToMutate, temp.hillClimbedGene)
       temp = temp.copy(lastResults = List())
       newBest = temp.individuals.head
@@ -332,10 +332,8 @@ case class Population(generation: Int,
 
 object Population {
 
-  val Size = 20
+  val Size = 16
   val EliteCount = 4
-  val IncrementBeforeCut = (Size * 10.0 / 100.0).toInt
-  //val NumberOfMutatingGenes: Int = (Size * 50.0 / 100.0).toInt
 
   def randomGeneration()(implicit fitnessFunction: FitnessFunction, dimension: ImageDimensions, configuration: Configuration): Population = {
 

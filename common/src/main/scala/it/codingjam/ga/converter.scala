@@ -10,7 +10,7 @@ package object converter {
 
     val x = parse(gene.binaryString.substring(0, 8))
     val y = parse(gene.binaryString.substring(8, 16))
-    val radius = parse(gene.binaryString.substring(16, 21))
+    val radius = (parse(gene.binaryString.substring(16, 21)) * 1.2).toInt
     val red = parse(gene.binaryString.substring(21, 26)) * 8
     val green = parse(gene.binaryString.substring(26, 31)) * 8
     val blue = parse(gene.binaryString.substring(31, 36)) * 8

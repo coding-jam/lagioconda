@@ -64,6 +64,11 @@ package object conversions {
 
   def neigh(gene: Gene): List[Gene] = {
 
+    def to2bits(i: Int) = {
+      val k = (i + 4) % 4
+      "%05d".format(k.toBinaryString.toInt)
+    }
+
     def to5bits(i: Int) = {
       val k = (i + 32) % 32
       "%05d".format(k.toBinaryString.toInt)
@@ -74,6 +79,11 @@ package object conversions {
       "%06d".format(k.toBinaryString.toInt)
     }
 
+    def to7bits(i: Int) = {
+      val k = (i + 128) % 128
+      "%07d".format(k.toBinaryString.toInt)
+    }
+
     def to8bits(i: Int): String = {
       val k = (i + 256) % 256
       "%08d".format(k.toBinaryString.toInt)
@@ -81,19 +91,19 @@ package object conversions {
 
     val t = converter.toComponents(gene)
     // shapeless where are you??
-    val l: List[Int] = List(t._1, t._2, t._3, t._4, t._5, t._6)
+    val l: List[Int] = List(t._1, t._2, t._3, t._4, t._5, t._6, t._7)
 
-    val ll = Range(0, 64)
-      .map(i => to6bits(i).split("").toList.map(_.toInt * 16))
+    val ll = Range(0, 128)
+      .map(i => to7bits(i).split("").toList.map(_.toInt * 8))
       .toList
 
     val o = ll.map(e => e.zip(l))
 
     val k = o.map(e => e.map(x => x._1 + x._2)) ++ o.map(e => e.map(x => x._2 - x._1))
 
-    val oo = k.map(e => to8bits(e(0)) + to8bits(e(1)) + to5bits(e(2)) + to8bits(e(3)) + to8bits(e(4)) + to8bits(e(5)) + "01")
+    val oo = k.map(e => to8bits(e(0)) + to8bits(e(1)) + to5bits(e(2)) + to5bits(e(3)) + to5bits(e(4)) + to5bits(e(5)) + to2bits(e(6)))
 
-    oo.map(Gene(_))
+    oo.distinct.map(Gene(_))
 
   }
 
