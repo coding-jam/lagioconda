@@ -69,6 +69,11 @@ package object conversions {
       "%05d".format(k.toBinaryString.toInt)
     }
 
+    def to4bits(i: Int) = {
+      val k = (i + 16) % 16
+      "%04d".format(k.toBinaryString.toInt)
+    }
+
     def to5bits(i: Int) = {
       val k = (i + 32) % 32
       "%05d".format(k.toBinaryString.toInt)
@@ -90,20 +95,19 @@ package object conversions {
     }
 
     val t = converter.toComponents(gene)
-    // shapeless where are you??
-    val l: List[Int] = List(t._1, t._2, t._3, t._4, t._5, t._6, t._7)
 
-    val ll = Range(0, 128)
-      .map(i => to7bits(i).split("").toList.map(_.toInt * 8))
-      .toList
+    val u = for {
+      i <- List(0)
+      j <- List(0)
+      k <- List(0)
+      l <- List(0, 4, 10, 20, 30, 40, 50)
+      m <- List(0, 4, 10, 20, 30, 40, 50)
+      n <- List(0, 4, 10, 20, 30, 40, 50)
+    } yield (t._1 + i, t._2 + j, t._3 + k, t._4 + l, t._5 + m, t._6 + n)
 
-    val o = ll.map(e => e.zip(l))
+    val ii = u.map(e => to8bits(e._1) + to8bits(e._2) + to4bits(e._3) + to6bits(e._4) + to6bits(e._5) + to6bits(e._6))
 
-    val k = o.map(e => e.map(x => x._1 + x._2)) ++ o.map(e => e.map(x => x._2 - x._1))
-
-    val oo = k.map(e => to8bits(e(0)) + to8bits(e(1)) + to5bits(e(2)) + to5bits(e(3)) + to5bits(e(4)) + to5bits(e(5)) + to2bits(e(6)))
-
-    oo.distinct.map(Gene(_))
+    ii.distinct.map(Gene(_))
 
   }
 
@@ -111,7 +115,7 @@ package object conversions {
 
     def toCircle(implicit configuration: Configuration): Circle = {
       val c = converter.toComponents(gene)
-      Circle(Center(c._1, c._2), c._3, Color(c._4, c._5, c._6, c._7))
+      Circle(Center(c._1, c._2), c._3, Color(c._4, c._5, c._6, Gene.alfa))
     }
   }
 

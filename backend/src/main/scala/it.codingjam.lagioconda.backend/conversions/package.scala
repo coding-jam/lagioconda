@@ -47,9 +47,9 @@ package object conversions {
         to8bits(circle.center.x),
         to8bits(circle.center.y),
         to5bits(circle.radius),
-        to6bits(circle.color.red),
-        to6bits(circle.color.green),
-        to6bits(circle.color.blue)
+        to5bits(circle.color.red),
+        to5bits(circle.color.green),
+        to5bits(circle.color.blue)
       )
       Gene(list.mkString(""))
     }
@@ -60,7 +60,7 @@ package object conversions {
 
     def toCircle(implicit configuration: Configuration): Circle = {
       val c = converter.toComponents(gene)
-      Circle(Center(c._1, c._2), c._3, Color(c._4, c._5, c._6, c._7))
+      Circle(Center(c._1, c._2), c._3, Color(c._4, c._5, c._6, Gene.alfa))
     }
   }
 
