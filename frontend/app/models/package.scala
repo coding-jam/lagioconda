@@ -100,9 +100,9 @@ package object conversions {
       i <- List(0)
       j <- List(0)
       k <- List(0)
-      l <- List(0, 5, 10, 20, 30, 40, 50, 55)
-      m <- List(0, 5, 10, 20, 30, 40, 50, 55)
-      n <- List(0, 5, 10, 20, 30, 40, 50, 55)
+      l <- List(0, 5, 10, 20, 30, 40, 50, 55, -t._4)
+      m <- List(0, 5, 10, 20, 30, 40, 50, 55, -t._5)
+      n <- List(0, 5, 10, 20, 30, 40, 50, 55, -t._6)
     } yield (t._1 + i, t._2 + j, t._3 + k, t._4 + l, t._5 + m, t._6 + n)
 
     val ii = u.map(e => to8bits(e._1) + to8bits(e._2) + to4bits(e._3) + to6bits(e._4) + to6bits(e._5) + to6bits(e._6))
