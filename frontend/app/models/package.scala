@@ -100,12 +100,12 @@ package object conversions {
       i <- List(0)
       j <- List(0)
       k <- List(0)
-      l <- List(0, 5, 10, 20, 25, 30, 40, 45, 50, 55, -t._4)
-      m <- List(0, 5, 10, 20, 25, 30, 40, 45, 50, 55, -t._5)
-      n <- List(0, 5, 10, 20, 25, 30, 40, 45, 50, 55, -t._6)
+      l <- List(0, 32, 64, 96, 128, 160, 192, 224, -t._4)
+      m <- List(0, 32, 64, 96, 128, 160, 192, 224, -t._5)
+      n <- List(0, 32, 64, 96, 128, 160, 192, 224, -t._6)
     } yield (t._1 + i, t._2 + j, t._3 + k, t._4 + l, t._5 + m, t._6 + n)
 
-    val ii = u.map(e => to8bits(e._1) + to8bits(e._2) + to6bits(e._3) + to6bits(e._4) + to6bits(e._5) + to6bits(e._6))
+    val ii = u.map(e => to8bits(e._1) + to8bits(e._2) + to8bits(e._3) + to8bits(e._4) + to8bits(e._5) + to8bits(e._6))
 
     ii.distinct.map(Gene(_))
 
