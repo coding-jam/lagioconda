@@ -43,7 +43,7 @@ case class Population(generation: Int,
     var newBest = temp.individuals.head
     val bitsToMutate = 5
 
-    if (this.lastResults.sum < 0.001 && this.lastResults.length >= maxRotate) {
+    if (this.lastResults.sum < 0.0005 && this.lastResults.length >= maxRotate) {
       temp = temp.hillClimb(a, ec, temperature, bitsToMutate, temp.hillClimbedGene)
       temp = temp.copy(lastResults = List())
       newBest = temp.individuals.head
@@ -150,7 +150,7 @@ case class Population(generation: Int,
 
     val future: Future[immutable.Seq[IndividualState]] = Future.sequence(futures)
 
-    val l: List[IndividualState] = Await.result(future, 20.seconds).toList
+    val l: List[IndividualState] = Await.result(future, 100.seconds).toList
 
     newIndividuals = newIndividuals ++ l
 
@@ -206,7 +206,7 @@ case class Population(generation: Int,
 
     val future: Future[immutable.Seq[IndividualState]] = Future.sequence(futures)
 
-    val l: List[IndividualState] = Await.result(future, 20.seconds).toList
+    val l: List[IndividualState] = Await.result(future, 120.seconds).toList
 
     newIndividuals = newIndividuals ++ l
 
@@ -276,6 +276,7 @@ case class Population(generation: Int,
                  rotate(lastResults, lastI),
                  lastMigrationFrom)
     } else {
+      println("Hill climb failed with gene " + gene + " " + this.bestIndividual.fitness)
       this.copy(hillClimbedGene = ((hillClimbedGene + 1) % Chromosome.numberOfGenes), lastResults = rotate(lastResults, 0.0))
     }
 
@@ -352,7 +353,7 @@ case class Population(generation: Int,
 
 object Population {
 
-  val Size = 16
+  val Size = 12
   val EliteCount = 4
 
   def randomGeneration()(implicit fitnessFunction: FitnessFunction, dimension: ImageDimensions, configuration: Configuration): Population = {
