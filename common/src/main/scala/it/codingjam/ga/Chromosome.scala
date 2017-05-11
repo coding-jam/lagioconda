@@ -4,8 +4,6 @@ import scala.util.Random
 
 case class Chromosome(genes: List[Gene]) {
 
-  require(genes.length == Chromosome.numberOfGenes)
-
   def mutate(implicit mutationPoint: MutationPointLike, mutationSize: Int): Chromosome = {
     val position = Random.nextInt(genes.size)
     Chromosome(
@@ -19,15 +17,6 @@ case class Chromosome(genes: List[Gene]) {
 
     val f = Function.chain(List.fill(times)(mut(_)))
     f(this)
-  }
-
-  def onePointCrossover(other: Chromosome)(implicit crossover: CrossoverPointLike): (Chromosome, Chromosome) = {
-    val r = Random.nextInt(Chromosome.numberOfGenes)
-    val c1 = this.genes.splitAt(r)
-    val c2 = other.genes.splitAt(r)
-    val l1 = c1._1 ++ c2._2
-    val l2 = c2._1 ++ c1._2
-    (Chromosome(l1), Chromosome(l2))
   }
 
   def genesCrossover(other: Chromosome)(implicit crossover: CrossoverPointLike): (Chromosome, Chromosome) = {
@@ -71,10 +60,14 @@ case class Chromosome(genes: List[Gene]) {
       (g2, g1)
   }
 
+  def addRandomGene() = {
+    this.copy(genes = this.genes :+ RandomGene.generate(Gene.Size))
+  }
+
 }
 
 object Chromosome {
 
-  val numberOfGenes = 100
+  val numberOfGenes = 3
 
 }

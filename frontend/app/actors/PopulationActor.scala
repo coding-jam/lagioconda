@@ -59,8 +59,9 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
     case cmd: PopulationActor.RunAGeneration =>
       val oldFitness = state.meanFitness
       val oldBest = best
+      implicit val ec = context.dispatcher
 
-      state = state.nextGeneration(service, context.dispatcher)
+      state = state.nextGeneration(service)
 
       temperature = Temperature(((1.0 - state.individuals.head.fitness) / (1.0 - initialBest)))
       //log.debug("Temperature " + temperature)
@@ -68,7 +69,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
       best = state.individuals.headOption
       best.foreach { b =>
         oldBest.foreach { old =>
-          if (b.fitness > old.fitness) {
+          if (b.fitness > old.fitness || state.trend == "change") {
             updateUI(cmd.index, b, b.fitness - old.fitness, state.generation, old.fitness, 0)
             //log.debug("New best for population {}@{} is {}", cmd.index, state.generation, format(b.fitness))
           }
@@ -116,7 +117,8 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
     ImageIO.write(bi, "png", b64)
     val image = os.toString("UTF-8")
 
-    val s = s"Fit: ${format(b.fitness * 100)}%, g: ${state.generation}, reason ${state.bestReason}"
+    val s =
+      s"Fit: ${format(b.fitness * 100)}%, g: ${state.generation}, reason ${state.bestReason}, genes: ${state.bestIndividual.chromosome.genes.length}"
     log.debug(
       "Population {}, reason {}, old fitness {}, increment {}",
       population + "/" + generation,

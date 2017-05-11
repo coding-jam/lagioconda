@@ -73,6 +73,6 @@ case class Gene(binaryString: String) {
 }
 
 object Gene {
-  var Size = 38
+  var Size = 40
   val alfa = 220
 }
