@@ -353,7 +353,7 @@ case class Population(generation: Int,
 
 object Population {
 
-  val Size = 12
+  val Size = 16
   val EliteCount = 4
 
   def randomGeneration()(implicit fitnessFunction: FitnessFunction, dimension: ImageDimensions, configuration: Configuration): Population = {
