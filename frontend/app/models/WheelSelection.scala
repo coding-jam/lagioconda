@@ -1,4 +1,4 @@
-package it.codingjam.ga
+package it.codingjam.lagioconda
 
 import it.codingjam.lagioconda.models.IndividualState
 
@@ -10,6 +10,6 @@ class WheelSelection extends SelectionFunction {
     val d = Random.nextDouble() * population.totalFitness
     val list = population.individuals.map(_.fitness).scanLeft(0.0)(_ + _)
     val p = population.individuals.size - list.takeWhile(d > _).size
-    population.individuals(p)
+    population.individuals(if (p < population.individuals.length) p else population.individuals.length - 1)
   }
 }

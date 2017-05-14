@@ -1,5 +1,6 @@
 package it.codingjam.lagioconda.domain
 
+import it.codingjam.lagioconda.{Center, Circle, Color, Configuration}
 import it.codingjam.lagioconda.conversions._
 import it.codingjam.lagioconda.ga.Gene
 import org.scalatest.{MustMatchers, WordSpecLike}

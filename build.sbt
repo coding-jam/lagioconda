@@ -6,6 +6,11 @@ val commonSettings = Seq(
   version := "0.0.1",
   scalaVersion := "2.11.8")
 
+resolvers ++= Seq(
+  "openImaJ repo" at "http://maven.openimaj.org",
+  "Semantic Desktop" at "http://aperture.sourceforge.net/maven"
+)
+
 
 lazy val root = (project in file("."))
   .settings(
@@ -18,6 +23,11 @@ lazy val common = (project in file("common"))
   .enablePlugins(BuildInfoPlugin)
   .settings(
     name := "common",
+    resolvers ++= Seq(
+      "openImaJ repo" at "http://maven.openimaj.org",
+      "Semantic Desktop" at "http://aperture.sourceforge.net/maven"
+    ),
+    libraryDependencies ++= (Dependencies.openimaj),
     commonSettings
   )
 
@@ -63,7 +73,6 @@ libraryDependencies ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.bytedeco" % "javacv-platform" % "1.3.1",
   "ch.qos.logback" % "logback-classic" % "1.1.3"
 )
 

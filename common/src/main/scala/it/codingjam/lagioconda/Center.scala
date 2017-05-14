@@ -1,4 +1,4 @@
-package it.codingjam.lagioconda.backend.domain
+package it.codingjam.lagioconda
 
 case class Color(red: Int, green: Int, blue: Int, alpha: Int)
 

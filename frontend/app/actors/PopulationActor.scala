@@ -5,16 +5,15 @@ import java.io.{ByteArrayOutputStream, File}
 import javax.imageio.ImageIO
 
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSelection, Props}
-import it.codingjam.ga.{Population, WheelSelection}
+import it.codingjam.lagioconda.{Configuration, ImageDimensions, Population, WheelSelection}
 import it.codingjam.lagioconda.actors.PopulationActor.{Migrate, Migration, MigrationDone, SetupPopulation}
 import it.codingjam.lagioconda.actors.SocketActor.{GenerationRan, PopulationGenerated}
-import it.codingjam.lagioconda.domain.{Configuration, ImageDimensions}
-import it.codingjam.lagioconda.fitness.ByteComparisonFitness
+import it.codingjam.lagioconda.conversions.ChromosomeToBufferedImage
+import it.codingjam.lagioconda.fitness.CIE2000Comparison
 import it.codingjam.lagioconda.ga.{Gene, RandomCrossoverPoint, RandomMutationPoint, Temperature}
+import it.codingjam.lagioconda.models.IndividualState
 import it.codingjam.lagioconda.protocol.Messages.Individual
 import org.apache.commons.codec.binary.Base64OutputStream
-import it.codingjam.lagioconda.conversions.ChromosomeToBufferedImage
-import it.codingjam.lagioconda.models.IndividualState
 
 class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with ActorLogging {
 
@@ -27,17 +26,16 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
 
   val reference = ImageIO.read(file)
 
-  val convertedImg = new BufferedImage(reference.getWidth(), reference.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+  val convertedImg: BufferedImage = new BufferedImage(reference.getWidth(), reference.getHeight(), BufferedImage.TYPE_INT_RGB);
   convertedImg.getGraphics().drawImage(reference, 0, 0, null)
 
-  val referenceInByte = convertedImg.getRaster().getDataBuffer().asInstanceOf[DataBufferByte].getData()
   implicit val configuration = Configuration(alpha = 128, length = Gene.Size)
 
   implicit val dimension = ImageDimensions(reference.getWidth, reference.getHeight)
-  implicit val fitnessFunction = new ByteComparisonFitness(referenceInByte)
   implicit val crossover = new RandomCrossoverPoint
   implicit val mutation = new RandomMutationPoint
   implicit val selection = new WheelSelection
+  implicit val fitness = new CIE2000Comparison(convertedImg, dimension)
 
   var best: Option[IndividualState] = None
   var initialBest = 0.0

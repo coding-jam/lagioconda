@@ -1,10 +1,10 @@
-package it.codingjam.ga.protocol
+package it.codingjam.lagioconda.protocol
 
 import it.codingjam.lagioconda.ga.Chromosome
 
-trait Message {}
+trait Message
 
-object Messages {
+object Message {
 
   case class CalculateFitness(chromosome: Chromosome, generation: Int, reason: String) extends Message
 

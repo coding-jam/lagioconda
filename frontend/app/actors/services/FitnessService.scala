@@ -3,7 +3,7 @@ package it.codingjam.lagioconda.actors
 import akka.actor._
 import akka.cluster.Cluster
 import akka.routing.FromConfig
-import it.codingjam.ga.protocol.Messages.CalculateFitness
+import it.codingjam.lagioconda.protocol.Message.CalculateFitness
 
 /**
   * The connection point between frontend and  cluster

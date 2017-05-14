@@ -2,8 +2,8 @@ package it.codingjam.lagioconda.fitness
 
 import java.awt.image.{DataBufferByte, DataBufferInt}
 
+import it.codingjam.lagioconda.{Configuration, ImageDimensions}
 import it.codingjam.lagioconda.conversions._
-import it.codingjam.lagioconda.domain.{Configuration, ImageDimensions}
 import it.codingjam.lagioconda.ga.Chromosome
 
 class ByteComparisonFitness(val baseImage: Array[Byte])(implicit dimension: ImageDimensions, configuration: Configuration)

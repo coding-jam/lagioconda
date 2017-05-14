@@ -1,6 +1,6 @@
 package models
 
-import it.codingjam.ga.{Population, SelectionFunction}
+import it.codingjam.lagioconda.{Population, SelectionFunction}
 import it.codingjam.lagioconda.models.IndividualState
 
 class EliteSelection extends SelectionFunction {

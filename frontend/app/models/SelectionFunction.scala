@@ -1,4 +1,4 @@
-package it.codingjam.ga
+package it.codingjam.lagioconda
 
 import it.codingjam.lagioconda.models.IndividualState
 

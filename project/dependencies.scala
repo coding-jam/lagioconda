@@ -18,6 +18,11 @@ object Dependencies {
     "com.google.guava" % "guava" % "18.0"
   )
 
+  val openimaj = Seq(
+    "org.openimaj" % "image-processing" % "1.3.5",
+    "org.openimaj.tools" % "core-tool" % "1.3.5"
+  )
+
   val webjars = Seq(
     "org.webjars" % "requirejs" % "2.1.11-1",
     "org.webjars" % "underscorejs" % "1.6.0-3",
