@@ -103,23 +103,24 @@ package object conversions {
       "%07d".format(k.toBinaryString.toInt)
     }
 
-    def to8bits(i: Int): String = {
-      val k = (i + 256) % 256
+    def to8bits(i: Int, min: Int = 0): String = {
+      var k = (i + 256) % 256
+      if (k < min) k = min
       "%08d".format(k.toBinaryString.toInt)
     }
 
     val t = toComponents(gene)
 
     val u = for {
-      i <- List(0, 3, -3)
-      j <- List(0, 3, -3)
-      k <- List(0, 1)
-      l <- List(0, 8, -8, 16, -16)
-      m <- List(0, 8, -8, 16, -16)
-      n <- List(0, 8, -8, 16, -16)
+      i <- List(0, 4, -4)
+      j <- List(0, 4, -4)
+      k <- List(0, 4, -4)
+      l <- List(0, 10, -10)
+      m <- List(0, 10, -10)
+      n <- List(0, 10, -10)
     } yield (t._1 + i, t._2 + j, t._3 + k, t._4 + l, t._5 + m, t._6 + n)
 
-    val ii = u.map(e => to8bits(e._1) + to8bits(e._2) + to8bits(e._3) + to8bits(e._4) + to8bits(e._5) + to8bits(e._6))
+    val ii = u.map(e => to8bits(e._1) + to8bits(e._2) + to8bits(e._3, 4) + to8bits(e._4) + to8bits(e._5) + to8bits(e._6))
     scala.concurrent.duration.Deadline
     ii.distinct.map(Gene(_))
 
@@ -128,6 +129,7 @@ package object conversions {
   implicit class ChromosomeToBufferedImage(chromosome: Chromosome) {
 
     def toBufferedImage()(implicit dimensions: ImageDimensions): BufferedImage = {
+
       val circles: List[Circle] = chromosome.genes.map(_.toCircle)
 
       val image = new BufferedImage(dimensions.width, dimensions.height, BufferedImage.TYPE_3BYTE_BGR);

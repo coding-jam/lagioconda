@@ -13,7 +13,7 @@
     <appender-ref ref="STDOUT" />
   </appender>
 
-  <logger name="play" level="WARN" />
+  <logger name="play" level="INFO" />
   <logger name="application" level="DEBUG" />
 
   <!-- Off these ones as they are annoying, and anyway we manage configuration ourselves -->
@@ -25,7 +25,7 @@
   <logger name="it.codingjam.lagioconda.actors.PopulationActor" level="DEBUG" />
   <logger name="it.codingjam.lagioconda.actors.SocketActor" level="DEBUG" />
 
-  <root level="INFO">
+  <root level="DEBUG">
     <appender-ref ref="ASYNCSTDOUT" />
   </root>
 

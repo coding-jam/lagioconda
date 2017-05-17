@@ -9,12 +9,12 @@ import it.codingjam.lagioconda.ga.Chromosome
 case class ImageHistogram(red: Array[Double], blue: Array[Double], green: Array[Double]) {
 
   private def chiSquareHistogram(histogram1: Array[Double], histogram2: Array[Double]): Double = {
-    var r = 0
+    var r: Double = 0.0d
     var i = 0
     while (i < histogram1.length) {
-      val t = histogram1(i) + histogram2(i)
+      val t: Double = histogram1(i) + histogram2(i)
       if (t != 0) {
-        r +=  ((histogram1(i) - histogram2(i))* (histogram1(i) - histogram2(i))) / t
+        r += ((histogram1(i) - histogram2(i)) * (histogram1(i) - histogram2(i))) / t
       }
       i += 1
     }
@@ -22,7 +22,8 @@ case class ImageHistogram(red: Array[Double], blue: Array[Double], green: Array[
   }
 
   def chiSquare(other: ImageHistogram): Double = {
-    (chiSquareHistogram(red, other.red) + chiSquareHistogram(blue, other.blue) + chiSquareHistogram(green, other.green))/ 3.0
+    val d = (chiSquareHistogram(red, other.red) + chiSquareHistogram(blue, other.blue) + chiSquareHistogram(green, other.green)) / 3.0
+    d
   }
 
 }
@@ -32,21 +33,21 @@ class HistogramFitness(baseImage: BufferedImage, imageDimension: ImageDimensions
   val baseHistogram = histogram(baseImage, imageDimension)
 
   override def fitness(chromosome: Chromosome): Double = {
+    println("calculate fitness")
 
     implicit val id = imageDimension
     val bi = new ChromosomeToBufferedImage(chromosome).toBufferedImage()(id)
 
     val testHistogram = histogram(bi, id)
+    println("calculate fitness ended")
+    1.0d - baseHistogram.chiSquare(testHistogram)
 
-    baseHistogram.chiSquare(testHistogram)
-    
   }
-
 
   def histogram(bufferedImage: BufferedImage, imageDimensions: ImageDimensions) = {
     implicit val id = imageDimension
 
-    val count : Double = bufferedImage.getWidth * bufferedImage.getHeight
+    val count: Double = bufferedImage.getWidth * bufferedImage.getHeight
 
     val imageInByte: Array[Byte] = bufferedImage.getRaster().getDataBuffer().asInstanceOf[DataBufferByte].getData()
     var i = 0
@@ -61,9 +62,9 @@ class HistogramFitness(baseImage: BufferedImage, imageDimension: ImageDimensions
       val g2 = imageInByte(i + 1) + 128
       val r2 = imageInByte(i + 2) + 128
 
-      r(r2) = (r(r2)+1) / 8
-      g(g2) = (r(g2)+1) / 8
-      b(b2) = (r(b2)+1) / 8
+      r(r2 / 8) = r(r2 / 8) + 1
+      g(g2 / 8) = g(g2 / 8) + 1
+      b(b2 / 8) = b(b2 / 8) + 1
 
       i = i + 3
     }
@@ -72,12 +73,7 @@ class HistogramFitness(baseImage: BufferedImage, imageDimension: ImageDimensions
     val gd = r.map(_ / count)
     val bd = r.map(_ / count)
 
-
-    ImageHistogram(rd,gd,bd)
+    ImageHistogram(rd, gd, bd)
   }
-
-
-
-
 
 }

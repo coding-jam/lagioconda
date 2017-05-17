@@ -5,7 +5,7 @@ import java.io.File
 import javax.imageio.ImageIO
 
 import akka.actor._
-import it.codingjam.lagioconda.fitness.{ByteComparisonFitness, CIE2000Comparison}
+import it.codingjam.lagioconda.fitness.{ByteComparisonFitness, CIE2000Comparison, ChiSquareByteComparisonFitness, HistogramFitness}
 import it.codingjam.lagioconda.ga.Gene
 import it.codingjam.lagioconda.protocol.Message.{CalculateFitness, CalculatedFitness}
 import it.codingjam.lagioconda.{Configuration, ImageDimensions}

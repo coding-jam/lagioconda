@@ -277,7 +277,7 @@ case class Population(generation: Int,
       val selected = (List(bestSoFar) ++ this.individuals).dropRight(1)
       val total = selected.map(_.fitness).sum
       println("Successfull Hill climb with gene " + gene)
-      val lastI = hillClimber.fitness - bestIndividual.fitness
+      val lastI = bestSoFar.fitness - bestIndividual.fitness
 
       Population(generation,
                  selected,
@@ -298,7 +298,7 @@ case class Population(generation: Int,
   private def fitness(a: ActorSelection, list: List[Chromosome], generation: Int, reason: String)(implicit ec: ExecutionContext) = {
     val futures: immutable.Seq[Future[IndividualState]] = list.map { chromosome =>
       (a ? CalculateFitness(chromosome, generation, reason)).mapTo[CalculatedFitness].map { cf =>
-        IndividualState(cf.chromosome, cf.fitness, cf.reason)
+        IndividualState(cf.chromosome, cf.fitness, reason)
       }
     }
     val future: Future[immutable.Seq[IndividualState]] = Future.sequence(futures)
@@ -366,9 +366,9 @@ case class Population(generation: Int,
 
 object Population {
 
-  val Size = 30
+  val Size = 40
   val EliteCount = 4
-  val MaxRotate = 1000
+  val MaxRotate = 500
 
   def randomGeneration()(implicit fitnessFunction: FitnessFunction, dimension: ImageDimensions, configuration: Configuration): Population = {
 

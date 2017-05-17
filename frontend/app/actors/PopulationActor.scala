@@ -9,8 +9,8 @@ import it.codingjam.lagioconda.{Configuration, ImageDimensions, Population, Whee
 import it.codingjam.lagioconda.actors.PopulationActor.{Migrate, Migration, MigrationDone, SetupPopulation}
 import it.codingjam.lagioconda.actors.SocketActor.{GenerationRan, PopulationGenerated}
 import it.codingjam.lagioconda.conversions.ChromosomeToBufferedImage
-import it.codingjam.lagioconda.fitness.{ByteComparisonFitness, CIE2000Comparison}
-import it.codingjam.lagioconda.ga._
+import it.codingjam.lagioconda.fitness.{ByteComparisonFitness, CIE2000Comparison, ChiSquareByteComparisonFitness, HistogramFitness}
+import it.codingjam.lagioconda.ga.{MutationPointLike, _}
 import it.codingjam.lagioconda.models.IndividualState
 import it.codingjam.lagioconda.protocol.Messages.Individual
 import org.apache.commons.codec.binary.Base64OutputStream
@@ -87,7 +87,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
         var useHc = true
 
         while (useHc) {
-          val start = size - 1 // if (Random.nextInt(20) < 1) 0 else Math.max(0, size - 4)
+          val start = if (Random.nextInt(20) < 1) 0 else Math.max(0, size - 1)
 
           Range(start, size).map { gene =>
             var oldFitness = temp.bestIndividual.fitness
@@ -155,7 +155,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
     val image = os.toString("UTF-8")
 
     val s =
-      s"Fit: ${format(b.fitness * 100)}%, g: ${state.generation}, reason ${state.bestReason}, genes: ${state.bestIndividual.chromosome.genes.length}"
+      s"Fit: ${format(b.fitness * 100)}%, g: ${state.generation}, reason ${b.generatedBy}, genes: ${state.bestIndividual.chromosome.genes.length}"
     log.debug(
       "Population {}, reason {}, old fitness {}, increment {}",
       population + "/" + generation,

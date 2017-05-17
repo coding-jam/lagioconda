@@ -6,6 +6,6 @@ class RandomMutationPoint extends MutationPointLike {
   override def mutationPoint(int: Int): Int = Random.nextInt(int)
 }
 
-class LastGeneMutationPoint(last: Int) extends MutationPointLike {
-  override def mutationPoint(int: Int): Int = last
+class FixedGeneMutationPoint(fixed: Int) extends MutationPointLike {
+  override def mutationPoint(int: Int): Int = fixed
 }

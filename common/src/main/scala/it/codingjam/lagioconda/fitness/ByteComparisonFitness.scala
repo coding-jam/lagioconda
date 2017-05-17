@@ -42,6 +42,8 @@ class ByteComparisonFitness(baseImage: BufferedImage, imageDimension: ImageDimen
   }
 
   def distance(c1r: Int, c1g: Int, c1b: Int, c2r: Int, c2g: Int, c2b: Int) = {
-    Math.sqrt(2 * (c1r - c2r) * (c1r - c2r) + 4 * (c1g - c2g) * (c1g - c2g) + 3 * (c1b - c2b) * (c1b - c2b))
+    val r = (c1r + c2r) / 2
+    Math.sqrt(
+      (2.0 + r / 256.0) * (c1r - c2r) * (c1r - c2r) + 4 * (c1g - c2g) * (c1g - c2g) + (2.0 + (255.0 - r) / 256.0) * (c1b - c2b) * (c1b - c2b))
   }
 }
