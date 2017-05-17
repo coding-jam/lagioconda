@@ -1,4 +1,4 @@
-package it.codingjam.lagioconda
+package it.codingjam.lagioconda.selection
 
 import it.codingjam.lagioconda.population.Individual
 

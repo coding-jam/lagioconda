@@ -12,7 +12,7 @@ import scala.util.Random
 
 case class Population(generation: Int, individuals: List[Individual], hillClimbedGene: Int, lastResults: List[Double])
     extends LazyLogging
-    with Retrying {
+    {
 
   implicit val to2 = akka.util.Timeout(60.seconds)
 
@@ -53,128 +53,7 @@ case class Population(generation: Int, individuals: List[Individual], hillClimbe
 
   }
 
-  def doMigration(migration: List[Individual], a: ActorSelection, ec: ExecutionContext, otherPopulationIndex: Int)(
-      implicit fitnessFunction: FitnessFunction,
-      selection: SelectionFunction,
-      mutation: MutationPointLike,
-      dimension: ImageDimensions,
-      crossover: CrossoverPointLike,
-      temperature: Temperature): Population = {
-    logger.debug("Migration from population " + otherPopulationIndex)
 
-    var temp = this.migration(migration, a, ec)
-    val oldBest = this.individuals.head
-    var newBest = temp.individuals.head
-
-    if (oldBest.fitness < newBest.fitness) {
-      val lastI = newBest.fitness - oldBest.fitness
-      Population(generation + 1, temp.individuals, temp.hillClimbedGene, rotate(lastResults, lastI))
-    } else
-      Population(generation + 1, temp.individuals, temp.hillClimbedGene, rotate(lastResults, 0.0))
-
-  }
-
-  def migration(list: List[Individual], a: ActorSelection, ec: ExecutionContext)(implicit fitnessFunction: FitnessFunction,
-                                                                                 selection: SelectionFunction,
-                                                                                 dimension: ImageDimensions,
-                                                                                 mutation: MutationPointLike,
-                                                                                 crossover: CrossoverPointLike,
-                                                                                 temperature: Temperature): Population = {
-
-    implicit val e = ec
-
-    val splitted = individuals.splitAt(Population.EliteCount)
-    var newIndividuals = splitted._1 // start with elite
-    val choice = Random.nextInt(list.size)
-
-    val offsprings = Range(0, Population.Size * 4).map { i =>
-      val selected1 = list(choice)
-      val selected2 = selection.select(this)
-      selected1.chromosome.uniformCrossover(selected2.chromosome)
-    }.toList
-
-    val migrationList: List[(Chromosome, String)] = offsprings.map { individual =>
-      (individual, "migration")
-    }
-
-    val futures: immutable.Seq[Future[Individual]] = migrationList.map { chromosome =>
-      (a ? CalculateFitness(chromosome._1, generation, chromosome._2)).mapTo[CalculatedFitness].map { cf =>
-        Individual(cf.chromosome, cf.fitness, cf.reason, generation)
-      }
-    }
-
-    val future: Future[immutable.Seq[Individual]] = Future.sequence(futures)
-
-    val l: List[Individual] = Await.result(future, 60.seconds).toList
-
-    newIndividuals = newIndividuals ++ l
-
-    val totalFitness: Double = newIndividuals.map(_.fitness).sum
-
-    Population(generation, sort(newIndividuals), hillClimbedGene, lastResults)
-  }
-
-  def crossOver(a: ActorSelection, ec: ExecutionContext)(implicit fitnessFunction: FitnessFunction,
-                                                         selection: SelectionFunction,
-                                                         dimension: ImageDimensions,
-                                                         mutation: MutationPointLike,
-                                                         crossover: CrossoverPointLike,
-                                                         temperature: Temperature,
-                                                         scheduler: Scheduler): Population = {
-
-    implicit val e = ec
-
-    val splitted = individuals.splitAt(Population.EliteCount)
-    var newIndividuals = splitted._1 // start with elite
-    val offsprings = Range(0, Population.Size).map { i =>
-      val selected1: Individual = selection.select(this)
-      var selected2 = selection.select(this)
-      while (selected1 == selected2) selected2 = selection.select(this)
-      selected1.chromosome.uniformCrossover(selected2.chromosome)
-    }.toList
-
-    val chanceOfMutation = 15
-    val mutationSize = 1
-    val times = 1
-    val mutationList: List[(Chromosome, String)] = offsprings.map { individual =>
-      val r = Random.nextInt(100)
-
-      if (r < chanceOfMutation)
-        (individual.mutate(times)(mutation, mutationSize), "mutation")
-      else
-        (individual, "crossover")
-    }
-
-    val futures: immutable.Seq[Future[Individual]] = mutationList.map { chromosome =>
-      (a ? CalculateFitness(chromosome._1, generation, chromosome._2)).mapTo[CalculatedFitness].map { cf =>
-        Individual(cf.chromosome, cf.fitness, cf.reason, generation)
-      }
-    }
-
-    val future: Future[immutable.Seq[Individual]] = Future.sequence(futures)
-
-    val l = calc(mutationList, a)
-
-    newIndividuals = newIndividuals ++ l
-
-    val totalFitness: Double = newIndividuals.map(_.fitness).sum
-
-    Population(generation, sort(newIndividuals), hillClimbedGene, lastResults)
-  }
-
-  def calc(cList: List[(Chromosome, String)], a: ActorSelection)(implicit ec: ExecutionContext, scheduler: Scheduler): List[Individual] = {
-    val futures: immutable.Seq[Future[Individual]] = cList.map { chromosome =>
-      (a ? CalculateFitness(chromosome._1, generation, chromosome._2)).mapTo[CalculatedFitness].map { cf =>
-        Individual(cf.chromosome, cf.fitness, cf.reason, generation)
-      }
-    }
-
-    val future: Future[immutable.Seq[Individual]] = Future.sequence(futures)
-
-    val f = retry(future, 120.seconds, 5)
-
-    Await.result(f, 120.seconds).toList
-  }
 
   def neighbour(chromosome: Chromosome, gene: Int): List[Chromosome] = {
     it.codingjam.lagioconda.conversions.neigh(chromosome.genes(gene)).map { g =>
@@ -230,7 +109,6 @@ case class Population(generation: Int, individuals: List[Individual], hillClimbe
     (lefts.map(_.left.get), rights.map(_.right.get))
   }
 
-  private def sort(list: List[Individual]) = list.sorted(Ordering[Individual]).reverse
 
   def addIfNotClone(list: List[Individual], newIndividual: Individual) = {
     val l: Seq[Individual] = list.filter(i => i.fitness == newIndividual.fitness)

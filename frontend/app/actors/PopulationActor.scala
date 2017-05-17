@@ -12,7 +12,8 @@ import it.codingjam.lagioconda.fitness.ByteComparisonFitness
 import it.codingjam.lagioconda.ga.{MutationPointLike, _}
 import it.codingjam.lagioconda.population.Individual
 import it.codingjam.lagioconda.protocol.Messages.IndividualInfo
-import it.codingjam.lagioconda.{Configuration, ImageDimensions, Population, WheelSelection}
+import it.codingjam.lagioconda.selection.WheelSelection
+import it.codingjam.lagioconda.{Configuration, ImageDimensions, Population}
 import org.apache.commons.codec.binary.Base64OutputStream
 
 import scala.util.Random
