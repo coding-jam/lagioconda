@@ -9,11 +9,13 @@ import it.codingjam.lagioconda.{Configuration, ImageDimensions, Population, Whee
 import it.codingjam.lagioconda.actors.PopulationActor.{Migrate, Migration, MigrationDone, SetupPopulation}
 import it.codingjam.lagioconda.actors.SocketActor.{GenerationRan, PopulationGenerated}
 import it.codingjam.lagioconda.conversions.ChromosomeToBufferedImage
-import it.codingjam.lagioconda.fitness.CIE2000Comparison
-import it.codingjam.lagioconda.ga.{Gene, RandomCrossoverPoint, RandomMutationPoint, Temperature}
+import it.codingjam.lagioconda.fitness.{ByteComparisonFitness, CIE2000Comparison}
+import it.codingjam.lagioconda.ga._
 import it.codingjam.lagioconda.models.IndividualState
 import it.codingjam.lagioconda.protocol.Messages.Individual
 import org.apache.commons.codec.binary.Base64OutputStream
+
+import scala.util.Random
 
 class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with ActorLogging {
 
@@ -21,21 +23,22 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
   var generation = 0
   var n = 0
   var index = -1
+  implicit val scheduler = context.system.scheduler
 
   val file = new File("frontend/public/images/monalisasmall2.png")
 
   val reference = ImageIO.read(file)
 
-  val convertedImg: BufferedImage = new BufferedImage(reference.getWidth(), reference.getHeight(), BufferedImage.TYPE_INT_RGB);
+  val convertedImg: BufferedImage = new BufferedImage(reference.getWidth(), reference.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
   convertedImg.getGraphics().drawImage(reference, 0, 0, null)
 
   implicit val configuration = Configuration(alpha = 128, length = Gene.Size)
 
   implicit val dimension = ImageDimensions(reference.getWidth, reference.getHeight)
   implicit val crossover = new RandomCrossoverPoint
-  implicit val mutation = new RandomMutationPoint
+  implicit var mutation: MutationPointLike = new RandomMutationPoint
   implicit val selection = new WheelSelection
-  implicit val fitness = new CIE2000Comparison(convertedImg, dimension)
+  implicit val fitness = new ByteComparisonFitness(convertedImg, dimension)
 
   var best: Option[IndividualState] = None
   var initialBest = 0.0
@@ -56,7 +59,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
 
     case cmd: PopulationActor.RunAGeneration =>
       val oldFitness = state.meanFitness
-      val oldBest = best
+      val oldBest: Option[IndividualState] = best
       implicit val ec = context.dispatcher
 
       state = state.nextGeneration(service)
@@ -73,6 +76,42 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
           }
         }
       }
+
+      val ob = best.get
+      val size = ob.chromosome.genes.size
+      var temp = state
+      var newBest = temp.individuals.head
+
+      if (state.lastResults.sum < 0.0001 && state.lastResults.length >= Population.MaxRotate) {
+
+        var useHc = true
+
+        while (useHc) {
+          val start = size - 1 // if (Random.nextInt(20) < 1) 0 else Math.max(0, size - 4)
+
+          Range(start, size).map { gene =>
+            var oldFitness = temp.bestIndividual.fitness
+            temp = temp.hillClimb(service, ec, temperature, gene)
+            if (temp.bestIndividual.fitness > oldFitness) {
+              val newFitness = temp.bestIndividual.fitness
+              updateUI(cmd.index, temp.bestIndividual, newFitness - oldFitness, state.generation, oldFitness, 0)
+              oldFitness = temp.bestIndividual.fitness
+              log.debug("Hill climb successful " + newFitness)
+              useHc = true
+            } else {
+              useHc = false
+            }
+          }
+          newBest = temp.individuals.head
+        }
+
+        temp = temp.copy(lastResults = List())
+        temp = temp.addGene(service)
+        updateUI(cmd.index, temp.bestIndividual, 0, state.generation, oldFitness, 0)
+        state = temp
+        best = state.individuals.headOption
+      }
+
       sender() ! GenerationRan(cmd.index, state.generation)
 
     case cmd: Migrate =>

@@ -111,16 +111,16 @@ package object conversions {
     val t = toComponents(gene)
 
     val u = for {
-      i <- List(0)
-      j <- List(0)
-      k <- List(0)
-      l <- List(0, 32, 64, 96, 128, 160, 192, 224, -t._4)
-      m <- List(0, 32, 64, 96, 128, 160, 192, 224, -t._5)
-      n <- List(0, 32, 64, 96, 128, 160, 192, 224, -t._6)
+      i <- List(0, 3, -3)
+      j <- List(0, 3, -3)
+      k <- List(0, 1)
+      l <- List(0, 8, -8, 16, -16)
+      m <- List(0, 8, -8, 16, -16)
+      n <- List(0, 8, -8, 16, -16)
     } yield (t._1 + i, t._2 + j, t._3 + k, t._4 + l, t._5 + m, t._6 + n)
 
     val ii = u.map(e => to8bits(e._1) + to8bits(e._2) + to8bits(e._3) + to8bits(e._4) + to8bits(e._5) + to8bits(e._6))
-
+    scala.concurrent.duration.Deadline
     ii.distinct.map(Gene(_))
 
   }
@@ -134,7 +134,7 @@ package object conversions {
 
       val g2: Graphics2D = image.createGraphics()
 
-      val qualityHints = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF)
+      val qualityHints = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
       qualityHints.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED)
 
       g2.setRenderingHints(qualityHints)

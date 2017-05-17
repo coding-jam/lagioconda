@@ -5,7 +5,7 @@ import java.io.File
 import javax.imageio.ImageIO
 
 import akka.actor._
-import it.codingjam.lagioconda.fitness.CIE2000Comparison
+import it.codingjam.lagioconda.fitness.{ByteComparisonFitness, CIE2000Comparison}
 import it.codingjam.lagioconda.ga.Gene
 import it.codingjam.lagioconda.protocol.Message.{CalculateFitness, CalculatedFitness}
 import it.codingjam.lagioconda.{Configuration, ImageDimensions}
@@ -25,7 +25,7 @@ class WorkerActor extends Actor with ActorLogging {
 
   implicit val configuration = Configuration(alpha = 128, length = Gene.Size)
 
-  implicit val fitnessFunction = new CIE2000Comparison(convertedImg, dimension)
+  implicit val fitnessFunction = new ByteComparisonFitness(convertedImg, dimension)
 
   def receive = {
     case message: CalculateFitness =>
