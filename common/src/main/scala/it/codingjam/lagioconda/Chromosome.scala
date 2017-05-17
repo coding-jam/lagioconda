@@ -4,7 +4,7 @@ import scala.util.Random
 
 case class Chromosome(genes: List[Gene]) {
 
-  def mutate(implicit mutationPoint: MutationPointLike, mutationSize: Int): Chromosome = {
+  private def mutate(implicit mutationPoint: MutationPointLike, mutationSize: Int): Chromosome = {
     val position = Random.nextInt(genes.size)
     Chromosome(
       (genes.slice(0, position) :+ genes(position).mutation(mutationSize)) ++ genes
@@ -19,7 +19,7 @@ case class Chromosome(genes: List[Gene]) {
     f(this)
   }
 
-  def genesCrossover(other: Chromosome)(implicit crossover: CrossoverPointLike): (Chromosome, Chromosome) = {
+  private def genesCrossover(other: Chromosome)(implicit crossover: CrossoverPointLike): (Chromosome, Chromosome) = {
     val l: (List[Gene], List[Gene]) = genes
       .zip(other.genes)
       .map {
@@ -30,7 +30,7 @@ case class Chromosome(genes: List[Gene]) {
     (Chromosome(l._1), Chromosome(l._2))
   }
 
-  def fullCrossover(other: Chromosome)(implicit crossover: CrossoverPointLike): (Chromosome, Chromosome) = {
+  private def fullCrossover(other: Chromosome)(implicit crossover: CrossoverPointLike): (Chromosome, Chromosome) = {
     val l = genes
       .zip(other.genes)
       .map { case (g1, g2) => shuffle(g1, g2) }
@@ -48,7 +48,7 @@ case class Chromosome(genes: List[Gene]) {
     Chromosome(l._1)
   }
 
-  def neighbour(gene: Int, position: Int)(implicit mutationPointLike: MutationPointLike) = {
+  private def neighbour(gene: Int, position: Int)(implicit mutationPointLike: MutationPointLike) = {
     Chromosome((genes.slice(0, gene) :+ genes(gene).neighbour(position)) ++ genes.slice(gene + 1, genes.length))
   }
 
@@ -63,11 +63,5 @@ case class Chromosome(genes: List[Gene]) {
   def addRandomGene() = {
     this.copy(genes = this.genes :+ RandomGene.generate(Gene.Size))
   }
-
-}
-
-object Chromosome {
-
-  val numberOfGenes = 3
 
 }

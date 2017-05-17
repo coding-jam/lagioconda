@@ -16,7 +16,7 @@ object Messages {
   implicit object Writes extends Writes[OutEvent] {
     override def writes(o: OutEvent): JsValue = {
       o match {
-        case i: Individual => Individual.format.writes(i)
+        case i: IndividualInfo => IndividualInfo.format.writes(i)
         case s: Statistics => Statistics.format.writes(s)
         case x => sys.error("type not found " + o)
       }
@@ -38,11 +38,11 @@ object Messages {
     implicit val format = Json.format[Start]
   }
 
-  case class Individual(generation: Int, image: String, msg: String = Individual.identifier, population: Int, info: String)
+  case class IndividualInfo(generation: Int, image: String, msg: String = IndividualInfo.identifier, population: Int, info: String)
       extends OutEvent
 
-  object Individual extends JSFormatter {
-    implicit val format = Json.format[Individual]
+  object IndividualInfo extends JSFormatter {
+    implicit val format = Json.format[IndividualInfo]
   }
 
   case class Statistics(message: String, msg: String = Statistics.identifier) extends OutEvent

@@ -5,7 +5,7 @@ import akka.pattern.ask
 import com.typesafe.scalalogging.LazyLogging
 import it.codingjam.lagioconda.fitness.FitnessFunction
 import it.codingjam.lagioconda.ga._
-import models.IndividualState
+import models.Individual
 import it.codingjam.lagioconda.protocol.Message.{CalculateFitness, CalculatedFitness}
 
 import scala.collection.immutable
@@ -14,7 +14,7 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Random
 
 case class Population(generation: Int,
-                      individuals: List[IndividualState],
+                      individuals: List[Individual],
                       totalFitness: Double,
                       newBestAtGeneration: Int,
                       bestReason: String,
@@ -88,7 +88,7 @@ case class Population(generation: Int,
 
   }
 
-  def doMigration(migration: List[IndividualState], a: ActorSelection, ec: ExecutionContext, otherPopulationIndex: Int)(
+  def doMigration(migration: List[Individual], a: ActorSelection, ec: ExecutionContext, otherPopulationIndex: Int)(
       implicit fitnessFunction: FitnessFunction,
       selection: SelectionFunction,
       mutation: MutationPointLike,
@@ -129,12 +129,12 @@ case class Population(generation: Int,
 
   }
 
-  def migration(list: List[IndividualState], a: ActorSelection, ec: ExecutionContext)(implicit fitnessFunction: FitnessFunction,
-                                                                                      selection: SelectionFunction,
-                                                                                      dimension: ImageDimensions,
-                                                                                      mutation: MutationPointLike,
-                                                                                      crossover: CrossoverPointLike,
-                                                                                      temperature: Temperature): Population = {
+  def migration(list: List[Individual], a: ActorSelection, ec: ExecutionContext)(implicit fitnessFunction: FitnessFunction,
+                                                                                 selection: SelectionFunction,
+                                                                                 dimension: ImageDimensions,
+                                                                                 mutation: MutationPointLike,
+                                                                                 crossover: CrossoverPointLike,
+                                                                                 temperature: Temperature): Population = {
 
     implicit val e = ec
 
@@ -152,15 +152,15 @@ case class Population(generation: Int,
       (individual, "migration")
     }
 
-    val futures: immutable.Seq[Future[IndividualState]] = migrationList.map { chromosome =>
+    val futures: immutable.Seq[Future[Individual]] = migrationList.map { chromosome =>
       (a ? CalculateFitness(chromosome._1, generation, chromosome._2)).mapTo[CalculatedFitness].map { cf =>
-        IndividualState(cf.chromosome, cf.fitness, cf.reason)
+        Individual(cf.chromosome, cf.fitness, cf.reason)
       }
     }
 
-    val future: Future[immutable.Seq[IndividualState]] = Future.sequence(futures)
+    val future: Future[immutable.Seq[Individual]] = Future.sequence(futures)
 
-    val l: List[IndividualState] = Await.result(future, 60.seconds).toList
+    val l: List[Individual] = Await.result(future, 60.seconds).toList
 
     newIndividuals = newIndividuals ++ l
 
@@ -190,7 +190,7 @@ case class Population(generation: Int,
     val splitted = individuals.splitAt(Population.EliteCount)
     var newIndividuals = splitted._1 // start with elite
     val offsprings = Range(0, Population.Size).map { i =>
-      val selected1: IndividualState = selection.select(this)
+      val selected1: Individual = selection.select(this)
       var selected2 = selection.select(this)
       while (selected1 == selected2) selected2 = selection.select(this)
       selected1.chromosome.uniformCrossover(selected2.chromosome)
@@ -208,13 +208,13 @@ case class Population(generation: Int,
         (individual, "crossover")
     }
 
-    val futures: immutable.Seq[Future[IndividualState]] = mutationList.map { chromosome =>
+    val futures: immutable.Seq[Future[Individual]] = mutationList.map { chromosome =>
       (a ? CalculateFitness(chromosome._1, generation, chromosome._2)).mapTo[CalculatedFitness].map { cf =>
-        IndividualState(cf.chromosome, cf.fitness, cf.reason)
+        Individual(cf.chromosome, cf.fitness, cf.reason)
       }
     }
 
-    val future: Future[immutable.Seq[IndividualState]] = Future.sequence(futures)
+    val future: Future[immutable.Seq[Individual]] = Future.sequence(futures)
 
     val l = calc(mutationList, a)
 
@@ -233,15 +233,14 @@ case class Population(generation: Int,
                lastMigrationFrom)
   }
 
-  def calc(cList: List[(Chromosome, String)], a: ActorSelection)(implicit ec: ExecutionContext,
-                                                                 scheduler: Scheduler): List[IndividualState] = {
-    val futures: immutable.Seq[Future[IndividualState]] = cList.map { chromosome =>
+  def calc(cList: List[(Chromosome, String)], a: ActorSelection)(implicit ec: ExecutionContext, scheduler: Scheduler): List[Individual] = {
+    val futures: immutable.Seq[Future[Individual]] = cList.map { chromosome =>
       (a ? CalculateFitness(chromosome._1, generation, chromosome._2)).mapTo[CalculatedFitness].map { cf =>
-        IndividualState(cf.chromosome, cf.fitness, cf.reason)
+        Individual(cf.chromosome, cf.fitness, cf.reason)
       }
     }
 
-    val future: Future[immutable.Seq[IndividualState]] = Future.sequence(futures)
+    val future: Future[immutable.Seq[Individual]] = Future.sequence(futures)
 
     val f = retry(future, 120.seconds, 5)
 
@@ -261,7 +260,7 @@ case class Population(generation: Int,
 
     println("Hill climb with gene " + gene + " at generation " + this.generation + " fit " + bestIndividual.fitness)
 
-    def hc(chosen: IndividualState): IndividualState = {
+    def hc(chosen: Individual): Individual = {
       val l: List[Chromosome] = neighbour(chosen.chromosome, gene)
 
       val f = fitness(a, l, generation, "hillClimb")
@@ -296,12 +295,12 @@ case class Population(generation: Int,
   }
 
   private def fitness(a: ActorSelection, list: List[Chromosome], generation: Int, reason: String)(implicit ec: ExecutionContext) = {
-    val futures: immutable.Seq[Future[IndividualState]] = list.map { chromosome =>
+    val futures: immutable.Seq[Future[Individual]] = list.map { chromosome =>
       (a ? CalculateFitness(chromosome, generation, reason)).mapTo[CalculatedFitness].map { cf =>
-        IndividualState(cf.chromosome, cf.fitness, reason)
+        Individual(cf.chromosome, cf.fitness, reason)
       }
     }
-    val future: Future[immutable.Seq[IndividualState]] = Future.sequence(futures)
+    val future: Future[immutable.Seq[Individual]] = Future.sequence(futures)
     Await.result(future, 120.seconds).toList
   }
 
@@ -310,10 +309,10 @@ case class Population(generation: Int,
     (lefts.map(_.left.get), rights.map(_.right.get))
   }
 
-  private def sort(list: List[IndividualState]) = list.sorted(Ordering[IndividualState]).reverse
+  private def sort(list: List[Individual]) = list.sorted(Ordering[Individual]).reverse
 
-  def addIfNotClone(list: List[IndividualState], newIndividual: IndividualState) = {
-    val l: Seq[IndividualState] = list.filter(i => i.fitness == newIndividual.fitness)
+  def addIfNotClone(list: List[Individual], newIndividual: Individual) = {
+    val l: Seq[Individual] = list.filter(i => i.fitness == newIndividual.fitness)
     val m: Seq[Set[Gene]] = l.map(i => i.chromosome.genes.toSet)
     val n = m.find(set => set.equals(newIndividual.chromosome.genes.toSet))
     if (n.isDefined)
@@ -323,14 +322,14 @@ case class Population(generation: Int,
 
   def bestIndividual = individuals.head
 
-  def randomIndividual: IndividualState =
+  def randomIndividual: Individual =
     individuals(Random.nextInt(individuals.size))
 
-  def randomNotElite: IndividualState = individuals(Population.EliteCount + Random.nextInt(Population.Size - Population.EliteCount))
+  def randomNotElite: Individual = individuals(Population.EliteCount + Random.nextInt(Population.Size - Population.EliteCount))
 
-  def randomElite: IndividualState = individuals(Random.nextInt(Population.EliteCount))
+  def randomElite: Individual = individuals(Random.nextInt(Population.EliteCount))
 
-  def randomPositionAndIndividual: (Int, IndividualState) = {
+  def randomPositionAndIndividual: (Int, Individual) = {
     val pos = Random.nextInt(individuals.size)
     (pos, individuals(pos))
   }
@@ -348,7 +347,7 @@ case class Population(generation: Int,
     individuals(normalizedPosition(pos))
   }
 
-  def randomIndividualByWeight: IndividualState = {
+  def randomIndividualByWeight: Individual = {
     val total = (individuals.size * (individuals.size + 1)) / 2
     var r = Random.nextInt(total)
     var x = individuals.size
@@ -372,16 +371,16 @@ object Population {
 
   def randomGeneration()(implicit fitnessFunction: FitnessFunction, dimension: ImageDimensions, configuration: Configuration): Population = {
 
-    var list: List[IndividualState] = List()
+    var list: List[Individual] = List()
 
     Range(0, Size).foreach { i =>
       val c: Chromosome = RandomChromosome.generate(Gene.Size, 1)
       val fitness = fitnessFunction.fitness(c)
-      val individual = IndividualState(c, fitness, "random")
+      val individual = Individual(c, fitness, "random")
       list = list :+ individual
     }
 
-    Population(0, list.sorted(Ordering[IndividualState].reverse), list.map(_.fitness).sum, 0, "random", 0, 0.0, List(), 0)
+    Population(0, list.sorted(Ordering[Individual].reverse), list.map(_.fitness).sum, 0, "random", 0, 0.0, List(), 0)
   }
 
 }

@@ -1,7 +1,7 @@
 package it.codingjam.lagioconda
 
-import it.codingjam.lagioconda.models.IndividualState
+import it.codingjam.lagioconda.models.Individual
 
 trait SelectionFunction {
-  def select(population: Population): IndividualState
+  def select(population: Population): Individual
 }

@@ -1,25 +1,25 @@
 package it.codingjam.lagioconda.actors
 
-import java.awt.image.{BufferedImage, DataBufferByte}
+import java.awt.image.BufferedImage
 import java.io.{ByteArrayOutputStream, File}
 import javax.imageio.ImageIO
 
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSelection, Props}
-import it.codingjam.lagioconda.{Configuration, ImageDimensions, Population, WheelSelection}
 import it.codingjam.lagioconda.actors.PopulationActor.{Migrate, Migration, MigrationDone, SetupPopulation}
 import it.codingjam.lagioconda.actors.SocketActor.{GenerationRan, PopulationGenerated}
 import it.codingjam.lagioconda.conversions.ChromosomeToBufferedImage
-import it.codingjam.lagioconda.fitness.{ByteComparisonFitness, CIE2000Comparison, ChiSquareByteComparisonFitness, HistogramFitness}
+import it.codingjam.lagioconda.fitness.ByteComparisonFitness
 import it.codingjam.lagioconda.ga.{MutationPointLike, _}
-import it.codingjam.lagioconda.models.IndividualState
-import it.codingjam.lagioconda.protocol.Messages.Individual
+import it.codingjam.lagioconda.models.Individual
+import it.codingjam.lagioconda.protocol.Messages.IndividualInfo
+import it.codingjam.lagioconda.{Configuration, ImageDimensions, Population, WheelSelection}
 import org.apache.commons.codec.binary.Base64OutputStream
 
 import scala.util.Random
 
 class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with ActorLogging {
 
-  var state = Population(0, List[IndividualState](), 0.0, 0, "???", 0, 0.0, List(), 0)
+  var state = Population(0, List[Individual](), 0.0, 0, "???", 0, 0.0, List(), 0)
   var generation = 0
   var n = 0
   var index = -1
@@ -40,7 +40,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
   implicit val selection = new WheelSelection
   implicit val fitness = new ByteComparisonFitness(convertedImg, dimension)
 
-  var best: Option[IndividualState] = None
+  var best: Option[Individual] = None
   var initialBest = 0.0
   implicit var temperature = Temperature(1.0)
   var last100results = List[Int]()
@@ -59,7 +59,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
 
     case cmd: PopulationActor.RunAGeneration =>
       val oldFitness = state.meanFitness
-      val oldBest: Option[IndividualState] = best
+      val oldBest: Option[Individual] = best
       implicit val ec = context.dispatcher
 
       state = state.nextGeneration(service)
@@ -133,15 +133,10 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
 
   }
 
-  private def compareFitnesses(a: Double, b: Double) = {
-    if (a < b) "+"
-    else if (a > b) "-"
-    else "="
-  }
 
   private def format(d: Double) = f"$d%1.3f"
 
-  def updateUI(population: Int, b: IndividualState, increment: Double, generation: Int, oldfitness: Double, otherPopulationIndex: Int)(
+  def updateUI(population: Int, b: Individual, increment: Double, generation: Int, oldfitness: Double, otherPopulationIndex: Int)(
       implicit configuration: Configuration): Unit = {
 
     def format2(d: Double) = f"$d%1.5f"
@@ -164,7 +159,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
       format2(increment * 100)
     )
 
-    out ! Individual(generation = generation, image = image, population = index, info = s)
+    out ! IndividualInfo(generation = generation, image = image, population = index, info = s)
   }
 }
 
@@ -184,7 +179,7 @@ object PopulationActor {
 
   case class Migrate(index: Int, number: Int, otherPopulation: ActorRef, otherPopulationIndex: Int)
 
-  case class Migration(index: Int, list: List[IndividualState], otherPopulationIndex: Int)
+  case class Migration(index: Int, list: List[Individual], otherPopulationIndex: Int)
 
   case class MigrationDone(index: Int)
 
