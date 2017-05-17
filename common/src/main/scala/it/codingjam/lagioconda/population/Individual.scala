@@ -1,4 +1,4 @@
-package it.codingjam.lagioconda.models
+package it.codingjam.lagioconda.population
 
 import it.codingjam.lagioconda.ga.Chromosome
 

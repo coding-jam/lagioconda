@@ -1,11 +1,8 @@
-package it.codingjam.lagioconda
+package it.codingjam.lagioconda.population
 
-import akka.actor.{ActorSelection, Scheduler}
-import akka.pattern.ask
-import com.typesafe.scalalogging.LazyLogging
+import it.codingjam.lagioconda.ImageDimensions
 import it.codingjam.lagioconda.fitness.FitnessFunction
 import it.codingjam.lagioconda.ga._
-import models.Individual
 import it.codingjam.lagioconda.protocol.Message.{CalculateFitness, CalculatedFitness}
 
 import scala.collection.immutable
