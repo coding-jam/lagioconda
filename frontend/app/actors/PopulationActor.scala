@@ -19,7 +19,7 @@ import scala.util.Random
 
 class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with ActorLogging {
 
-  var state = Population(0, List[Individual](), 0.0, 0, "???", 0, 0.0, List(), 0)
+  var state = Population(0, List[Individual](), 0, List())
   var generation = 0
   var n = 0
   var index = -1
@@ -53,12 +53,10 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
       best.foreach(updateUI(cmd.index, _, 0.0, state.generation, 0.0, 0))
 
       initialBest = state.individuals.head.fitness
-      log.debug("Initial Mean fitness {}", state.meanFitness)
       log.debug("Initial Best {}", initialBest)
       sender() ! PopulationGenerated(cmd.index, state.generation)
 
     case cmd: PopulationActor.RunAGeneration =>
-      val oldFitness = state.meanFitness
       val oldBest: Option[Individual] = best
       implicit val ec = context.dispatcher
 
@@ -70,7 +68,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
       best = state.individuals.headOption
       best.foreach { b =>
         oldBest.foreach { old =>
-          if (b.fitness > old.fitness || state.trend == "change") {
+          if (b.fitness > old.fitness) {
             updateUI(cmd.index, b, b.fitness - old.fitness, state.generation, old.fitness, 0)
             //log.debug("New best for population {}@{} is {}", cmd.index, state.generation, format(b.fitness))
           }
@@ -106,8 +104,9 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
         }
 
         temp = temp.copy(lastResults = List())
+        val fBeforeAdd = temp.bestIndividual.fitness
         temp = temp.addGene(service)
-        updateUI(cmd.index, temp.bestIndividual, 0, state.generation, oldFitness, 0)
+        updateUI(cmd.index, temp.bestIndividual, 0, state.generation, fBeforeAdd, 0)
         state = temp
         best = state.individuals.headOption
       }
@@ -133,7 +132,6 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
 
   }
 
-
   private def format(d: Double) = f"$d%1.3f"
 
   def updateUI(population: Int, b: Individual, increment: Double, generation: Int, oldfitness: Double, otherPopulationIndex: Int)(
@@ -154,7 +152,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
     log.debug(
       "Population {}, reason {}, old fitness {}, increment {}",
       population + "/" + generation,
-      state.bestReason,
+      b.generatedBy,
       format2(oldfitness * 100),
       format2(increment * 100)
     )
