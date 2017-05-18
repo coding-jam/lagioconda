@@ -53,6 +53,6 @@ object Population {
 
   val Size = 40
   val EliteCount = 4
-  val MaxRotate = 500
+  val MaxRotate = 20
 
 }

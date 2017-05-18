@@ -54,7 +54,7 @@ package object conversions {
       "%09d".format(i.toBinaryString.toInt)
     }
 
-    def toGene(implicit configuration: Configuration): Gene = {
+    def toGene: Gene = {
       val list = List(
         to8bits(circle.center.x),
         to8bits(circle.center.y),

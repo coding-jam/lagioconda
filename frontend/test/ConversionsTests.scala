@@ -1,6 +1,6 @@
 package it.codingjam.lagioconda.domain
 
-import it.codingjam.lagioconda.{Center, Circle, Color, Configuration}
+import it.codingjam.lagioconda.{Center, Circle, Color}
 import it.codingjam.lagioconda.conversions._
 import it.codingjam.lagioconda.ga.Gene
 import org.scalatest.{MustMatchers, WordSpecLike}
@@ -26,9 +26,8 @@ class ConversionsTests extends WordSpecLike with MustMatchers {
       s.toCharArray.map(_.toInt).map(_ % 2).map(_.toString).mkString("")
     }
 
-    implicit val configuration = Configuration(alpha = 128, length = 50)
 
-    val sampleCircle = Circle(Center(100, 300), 10, Color(120, 10, 30, configuration.alpha))
+    val sampleCircle = Circle(Center(100, 300), 10, Color(120, 10, 30, 150))
 
     val binarySequence = "00110010010010110000001010011110000000101000011110"
     implicit val length = binarySequence.length

@@ -1,39 +1,31 @@
 package it.codingjam.lagioconda.backend
 
-import java.awt.image.{BufferedImage, DataBufferByte}
+import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
 
 import akka.actor._
-import it.codingjam.lagioconda.fitness.{ByteComparisonFitness, CIE2000Comparison, ChiSquareByteComparisonFitness, HistogramFitness}
-import it.codingjam.lagioconda.ga.Gene
+import it.codingjam.lagioconda.ImageDimensions
+import it.codingjam.lagioconda.fitness.ByteComparisonFitness
 import it.codingjam.lagioconda.protocol.Message.{CalculateFitness, CalculatedFitness}
-import it.codingjam.lagioconda.{Configuration, ImageDimensions}
 
 class WorkerActor extends Actor with ActorLogging {
 
-  println("this is " + self.path)
+  private val file = new File("src/main/resources/monalisasmall2.png")
 
-  val file = new File("src/main/resources/monalisasmall2.png")
+  private val reference = ImageIO.read(file)
+  private implicit val dimension = ImageDimensions(reference.getWidth, reference.getHeight)
 
-  println("file " + file.getAbsolutePath)
-  val reference = ImageIO.read(file)
-  implicit val dimension = ImageDimensions(reference.getWidth, reference.getHeight)
-
-  val convertedImg = new BufferedImage(reference.getWidth(), reference.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+  private val convertedImg = new BufferedImage(reference.getWidth(), reference.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
   convertedImg.getGraphics().drawImage(reference, 0, 0, null)
 
-  implicit val configuration = Configuration(alpha = 128, length = Gene.Size)
-
-  implicit val fitnessFunction = new ByteComparisonFitness(convertedImg, dimension)
+  private implicit val fitnessFunction = new ByteComparisonFitness(convertedImg, dimension)
 
   def receive = {
     case message: CalculateFitness =>
-      //println("generation " + message.generation + " chromosome " + message.chromosome.hashCode())
       sender() ! CalculatedFitness(message.chromosome, message.reason, fitnessFunction.fitness(message.chromosome))
     case x =>
       log.error("Undefined command {}", x)
-
   }
 
 }
