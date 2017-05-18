@@ -19,6 +19,8 @@ addSbtPlugin("org.irundaia.sbt" % "sbt-sassify" % "1.4.6")
 
 addSbtPlugin("com.geirsson" % "sbt-scalafmt" % "0.5.8")
 
-addSbtPlugin("org.bytedeco" % "sbt-javacpp" % "1.9")
+addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.4.0")
 
-addSbtPlugin("org.bytedeco" % "sbt-javacv" % "1.12")
+addSbtPlugin("org.scala-sbt" % "sbt-core-next" % "0.1.1")
+
+addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.4.0")
