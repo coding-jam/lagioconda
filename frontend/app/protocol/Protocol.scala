@@ -1,4 +1,4 @@
-package it.codingjam.lagioconda.protocol
+package protocol
 
 import play.api.libs.json._
 import play.api.mvc.WebSocket.MessageFlowTransformer

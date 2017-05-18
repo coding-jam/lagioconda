@@ -1,5 +1,7 @@
 package it.codingjam.lagioconda.config
 
+import it.codingjam.lagioconda.ChromosomeOps
+import it.codingjam.lagioconda.ChromosomeOps.CombineChromosome
 import it.codingjam.lagioconda.ga.{CrossoverPointLike, MutationPointLike, RandomCrossoverPoint, RandomMutationPoint}
 import it.codingjam.lagioconda.population.Population
 import it.codingjam.lagioconda.selection.{SelectionFunction, WheelSelection}
@@ -8,7 +10,7 @@ case class PopulationConfig(size: Int, eliteCount: Int, numberOfGenes: Int)
 
 case class MutationConfig(chance: Int, strategy: MutationPointLike, size: Int, times: Int)
 
-case class AlgorithmConfig(mutation: MutationConfig, crossover: CrossoverPointLike)
+case class AlgorithmConfig(mutation: MutationConfig, crossoverPoint: CrossoverPointLike, crossover: CombineChromosome)
 
 case class Config(population: PopulationConfig, algorithm: AlgorithmConfig, selection: SelectionFunction, hillClimb: HillClimbConfig)
 
@@ -19,7 +21,7 @@ object PopulationConfig {
 }
 
 object AlgorithmConfig {
-  val Default = AlgorithmConfig(MutationConfig.Default, new RandomCrossoverPoint)
+  val Default = AlgorithmConfig(MutationConfig.Default, new RandomCrossoverPoint, ChromosomeOps.uniformCrossover)
 }
 
 object MutationConfig {

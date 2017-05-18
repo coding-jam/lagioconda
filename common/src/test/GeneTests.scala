@@ -18,7 +18,7 @@ class GeneTests extends WordSpecLike with MustMatchers {
     "crossover with fixed crossover point" in {
       implicit val cp = new FixedCrossoverPoint(10)
 
-      val newGenes = sampleGene1.crossover(sampleGene2)
+      val newGenes = sampleGene1.fullCrossOver(sampleGene2)
 
       newGenes._1.binaryString.substring(0, 10) mustBe sampleGene1.binaryString
         .subSequence(0, 10)

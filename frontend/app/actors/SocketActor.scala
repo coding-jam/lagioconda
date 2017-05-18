@@ -6,8 +6,8 @@ import akka.actor.{Actor, ActorLogging, ActorRef, ActorSelection, Props}
 import it.codingjam.lagioconda.actors.PopulationActor.SetupPopulation
 import it.codingjam.lagioconda.actors.SocketActor._
 import it.codingjam.lagioconda.config.{Config, PopulationConfig}
-import it.codingjam.lagioconda.protocol.InEvent
-import it.codingjam.lagioconda.protocol.Messages.{Start, Statistics}
+import protocol.InEvent
+import protocol.Messages.{Start, Statistics}
 
 import scala.concurrent.duration._
 
@@ -45,10 +45,7 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
         if (populationActors.isEmpty) {
           Range(0, MaxPopulation).foreach { i =>
             val a =
-              context.actorOf(PopulationActor
-                                .props(service, out)
-                                .withDispatcher("population-actor-dispatcher"),
-                              name = "pop" + i)
+              context.actorOf(PopulationActor.props(service, out).withDispatcher("population-actor-dispatcher"), name = "pop" + i)
             populationActors = populationActors :+ a
             a ! SetupPopulation(i, config)
           }
@@ -63,7 +60,7 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
       generationCounter += 1
       populationActors(msg.index) ! PopulationActor.RunAGeneration(msg.index)
 
-    case msg @ PrintStatistics =>
+    case msg @ SocketActor.PrintStatistics =>
       val d = JavaDuration.between(startedAt, Instant.now)
       val u = List(d.getSeconds)
 

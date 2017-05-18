@@ -8,7 +8,7 @@ case class Gene(binaryString: String) {
 
   private def flip(s: Char) = if (s == '1') "0" else "1"
 
-  def crossover(other: Gene)(implicit crossover: CrossoverPointLike): (Gene, Gene) = {
+  def fullCrossOver(other: Gene)(implicit crossover: CrossoverPointLike): (Gene, Gene) = {
     require(binaryString.length == other.binaryString.length)
     val cp = crossover.crossoverPoint(binaryString.length)
     val newGene1 = binaryString.substring(0, cp) + other.binaryString
@@ -16,6 +16,15 @@ case class Gene(binaryString: String) {
     val newGene2 = other.binaryString.substring(0, cp) + binaryString
         .substring(cp)
     (Gene(newGene1), Gene(newGene2))
+  }
+
+  def crossOver(other: Gene)(implicit crossoverPoint: CrossoverPointLike): Gene = {
+    require(binaryString.length == other.binaryString.length)
+    val cp = crossoverPoint.crossoverPoint(binaryString.length)
+    val newGene1 = binaryString.substring(0, cp) + other.binaryString
+        .substring(cp)
+
+    Gene(newGene1)
   }
 
   def neighbour(position: Int): Gene = {

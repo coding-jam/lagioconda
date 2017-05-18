@@ -19,45 +19,8 @@ case class Chromosome(genes: List[Gene]) {
     f(this)
   }
 
-  private def genesCrossover(other: Chromosome)(implicit crossover: CrossoverPointLike): (Chromosome, Chromosome) = {
-    val l: (List[Gene], List[Gene]) = genes
-      .zip(other.genes)
-      .map {
-        case (g1, g2) => g1.crossover(g2)
-      }
-      .unzip
-
-    (Chromosome(l._1), Chromosome(l._2))
-  }
-
-  private def fullCrossover(other: Chromosome)(implicit crossover: CrossoverPointLike): (Chromosome, Chromosome) = {
-    val l = genes
-      .zip(other.genes)
-      .map { case (g1, g2) => shuffle(g1, g2) }
-      .unzip
-
-    (Chromosome(l._1), Chromosome(l._2))
-  }
-
-  def uniformCrossover(other: Chromosome)(implicit crossover: CrossoverPointLike): Chromosome = {
-    val l = genes
-      .zip(other.genes)
-      .map { case (g1, g2) => shuffle(g1, g2) }
-      .unzip
-
-    Chromosome(l._1)
-  }
-
   private def neighbour(gene: Int, position: Int)(implicit mutationPointLike: MutationPointLike) = {
     Chromosome((genes.slice(0, gene) :+ genes(gene).neighbour(position)) ++ genes.slice(gene + 1, genes.length))
-  }
-
-  private def shuffle(g1: Gene, g2: Gene): (Gene, Gene) = {
-    val b = Random.nextBoolean()
-    if (b)
-      (g1, g2)
-    else
-      (g2, g1)
   }
 
   def addRandomGene() = {

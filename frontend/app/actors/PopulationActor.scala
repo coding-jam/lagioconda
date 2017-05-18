@@ -6,17 +6,16 @@ import javax.imageio.ImageIO
 
 import actors.ComputationContext
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSelection, PoisonPill, Props}
-import it.codingjam.lagioconda.actors.PopulationActor.{RunHillClimb, SetupPopulation}
+import it.codingjam.lagioconda.actors.PopulationActor.RunHillClimb
 import it.codingjam.lagioconda.actors.SocketActor.{GenerationRan, PopulationGenerated}
 import it.codingjam.lagioconda.config.Config
 import it.codingjam.lagioconda.conversions.ChromosomeToBufferedImage
 import it.codingjam.lagioconda.fitness.ByteComparisonFitness
-import it.codingjam.lagioconda.ga.{MutationPointLike, _}
+import it.codingjam.lagioconda.ga._
 import it.codingjam.lagioconda.population.{Individual, Population}
-import it.codingjam.lagioconda.protocol.Messages.IndividualInfo
-import it.codingjam.lagioconda.selection.WheelSelection
 import it.codingjam.lagioconda.{FitnessCalculator, ImageDimensions, PopulationOps}
 import org.apache.commons.codec.binary.Base64OutputStream
+import protocol.Messages.IndividualInfo
 
 import scala.util.Random
 
@@ -36,9 +35,6 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
   convertedImg.getGraphics().drawImage(reference, 0, 0, null)
 
   private implicit val dimension = ImageDimensions(reference.getWidth, reference.getHeight)
-  private implicit val crossover = new RandomCrossoverPoint
-  private implicit var mutation: MutationPointLike = new RandomMutationPoint
-  private implicit val selection = new WheelSelection
   private implicit val fitness = new ByteComparisonFitness(convertedImg, dimension)
   private var computation = new ComputationContext
 
@@ -58,7 +54,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
       computation = computation.copy(best = state.individuals.headOption)
       computation.best.foreach(updateUI(cmd.index, _, 0.0, 0.0, 0))
       initialBest = state.individuals.head.fitness
-      log.debug("Initial Best {}", initialBest)
+      log.debug(s"Initial Best $initialBest")
 
       sender() ! PopulationGenerated(cmd.index, state.generation)
 
@@ -81,14 +77,12 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
       eventuallyUpdateUi(oldBest)
 
       if (config.hillClimb.active && computation.lastResults.sum < config.hillClimb.slopeHeight && computation.lastResults.length >= config.hillClimb.slopeSize) {
-        log.debug("Starting hill climb")
         self ! RunHillClimb(sender())
       } else {
         sender() ! GenerationRan(index, state.generation)
       }
 
     case cmd: PopulationActor.RunHillClimb =>
-      log.debug("Hill climb")
       var continue = true
       val size = state.bestIndividual.chromosome.genes.size
       var temp = state
@@ -103,7 +97,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
             val newFitness = temp.bestIndividual.fitness
             updateUI(index, temp.bestIndividual, newFitness - oldFitness, oldFitness, 0)
             oldFitness = temp.bestIndividual.fitness
-            log.debug("Hill climb successful " + newFitness)
+            log.debug(s"Hill climb successful $newFitness")
             continue = true
           } else {
             continue = false
@@ -139,13 +133,12 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
   private def rotate(list: List[Double], double: Double) = (list :+ double).takeRight(Population.MaxRotate)
 
   private def updateUI(populationIndex: Int, best: Individual, increment: Double, oldFitness: Double, otherPopulationIndex: Int): Unit = {
-    val bi = best.chromosome.toBufferedImage()
+    val bufferedImage: BufferedImage = best.chromosome.toBufferedImage()
+    val outputStream = new ByteArrayOutputStream()
+    val base64OutputStream: Base64OutputStream = new Base64OutputStream(outputStream)
 
-    val os = new ByteArrayOutputStream()
-    val b64 = new Base64OutputStream(os)
-
-    ImageIO.write(bi, "png", b64)
-    val image = os.toString("UTF-8")
+    ImageIO.write(bufferedImage, "png", base64OutputStream)
+    val image = outputStream.toString("UTF-8")
 
     val message =
       s"""Fit: ${formatFitness(best.fitness * 100)}%

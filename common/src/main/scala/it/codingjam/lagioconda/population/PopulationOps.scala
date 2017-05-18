@@ -19,11 +19,11 @@ object PopulationOps extends LazyLogging {
 
     val splitted = population.individuals.splitAt(config.population.eliteCount)
     var newIndividuals = splitted._1 // start with elite
-    val offsprings = Range(0, config.population.size).map { i =>
+    val offsprings = Range(0, config.population.size).map { _ =>
       val selected1: Individual = config.selection.select(population)
       var selected2 = config.selection.select(population)
       while (selected1 == selected2) selected2 = config.selection.select(population)
-      selected1.chromosome.uniformCrossover(selected2.chromosome)(config.algorithm.crossover)
+      config.algorithm.crossover(selected1.chromosome, selected2.chromosome, config.algorithm.crossoverPoint)
     }.toList
 
     val mutationConfig = config.algorithm.mutation
@@ -47,14 +47,12 @@ object PopulationOps extends LazyLogging {
   def addGene(population: Population)(implicit fitnessCalculator: FitnessCalculator, config: Config): Population = {
     logger.debug("Adding gene")
 
-    val newGeneration = population.generation + 1
-
     val bestIndividual = population.bestIndividual
     val clist: List[(Chromosome, String)] =
       Range(0, population.individuals.length).map(i => (bestIndividual.chromosome.addRandomGene, "gene")).toList
-    val newIndividuals: List[Individual] = fitnessCalculator.calculate(clist, newGeneration)
+    val newIndividuals: List[Individual] = fitnessCalculator.calculate(clist, population.generation)
 
-    population.copy(newGeneration, individuals = sort(newIndividuals))
+    population.copy(individuals = sort(newIndividuals))
 
   }
 
@@ -84,12 +82,12 @@ object PopulationOps extends LazyLogging {
 
     if (population.bestIndividual.fitness < bestSoFar.fitness) {
       val selected = (List(bestSoFar) ++ population.individuals).dropRight(1)
-      logger.debug("Successfully HillClimb with gene ${gene}")
+      logger.debug(s"Successfully HillClimb with gene ${gene}")
       val lastI = bestSoFar.fitness - population.bestIndividual.fitness
 
       Population(population.generation, selected, gene, rotate(population.lastResults, lastI))
     } else {
-      logger.debug("Failed* HillClimb with gene ${gene}")
+      logger.debug(s"Failed* HillClimb with gene ${gene}")
       population.copy(hillClimbedGene = (population.hillClimbedGene + 1) % population.bestIndividual.chromosome.genes.length,
                       lastResults = rotate(population.lastResults, 0.0))
     }

@@ -4,10 +4,10 @@ import akka.actor.ActorSystem
 import akka.stream.Materializer
 import com.google.inject.Inject
 import it.codingjam.lagioconda.actors.SocketActor
-import it.codingjam.lagioconda.protocol.Messages.messageFlowTransformer
-import it.codingjam.lagioconda.protocol.{InEvent, OutEvent}
 import play.api.libs.streams.ActorFlow
 import play.api.mvc.{Controller, WebSocket}
+import protocol.Messages.messageFlowTransformer
+import protocol.{InEvent, OutEvent}
 
 class SocketController @Inject()(implicit system: ActorSystem, materializer: Materializer) extends Controller {
 
