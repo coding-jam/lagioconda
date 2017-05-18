@@ -4,7 +4,8 @@ import java.awt.image.BufferedImage
 import java.io.{ByteArrayOutputStream, File}
 import javax.imageio.ImageIO
 
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorSelection, Props}
+import actors.ComputationContext
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSelection, PoisonPill, Props}
 import it.codingjam.lagioconda.actors.PopulationActor.{RunHillClimb, SetupPopulation}
 import it.codingjam.lagioconda.actors.SocketActor.{GenerationRan, PopulationGenerated}
 import it.codingjam.lagioconda.config.Config
@@ -39,63 +40,61 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
   private implicit var mutation: MutationPointLike = new RandomMutationPoint
   private implicit val selection = new WheelSelection
   private implicit val fitness = new ByteComparisonFitness(convertedImg, dimension)
+  private var computation = new ComputationContext
 
   private implicit val fitnessCalculator = FitnessCalculator(service, fitness, dimension)
 
-  private var best: Option[Individual] = None
   private var initialBest = 0.0
-  private implicit var temperature = Temperature(1.0)
 
   private def formatPercent(d: Double) = f"$d%1.5f"
-
   private def formatFitness(d: Double) = f"$d%1.3f"
+  private def currentTemperature = Temperature(((1.0 - state.individuals.head.fitness) / (1.0 - initialBest)))
 
   override def receive: Receive = {
     case cmd: PopulationActor.SetupPopulation =>
       state = PopulationOps.randomGeneration()
       config = cmd.config
       index = cmd.index
-      best = state.individuals.headOption
-      best.foreach(updateUI(cmd.index, _, 0.0, 0.0, 0))
-
+      computation = computation.copy(best = state.individuals.headOption)
+      computation.best.foreach(updateUI(cmd.index, _, 0.0, 0.0, 0))
       initialBest = state.individuals.head.fitness
       log.debug("Initial Best {}", initialBest)
+
       sender() ! PopulationGenerated(cmd.index, state.generation)
 
     case cmd: PopulationActor.RunAGeneration =>
-      val oldBest: Option[Individual] = best
-      implicit val ec = context.dispatcher
-
+      val oldBest = state.bestIndividual
       state = PopulationOps.crossover(state)
 
-      temperature = Temperature(((1.0 - state.individuals.head.fitness) / (1.0 - initialBest)))
-
-      best = state.individuals.headOption
-      best.foreach { b =>
-        oldBest.foreach { old =>
-          if (b.fitness > old.fitness) {
-            updateUI(cmd.index, b, b.fitness - old.fitness, old.fitness, 0)
-          }
-        }
+      val result = if (state.bestIndividual > oldBest) {
+        state.bestIndividual.fitness - oldBest.fitness
+      } else {
+        0.0d
       }
 
-      println("state.lastResults.sum " + state.lastResults.sum)
-      println("state.lastResults.length " + state.lastResults.length)
-      if (state.lastResults.sum < 0.0001 && state.lastResults.length >= Population.MaxRotate) {
+      computation = computation.copy(
+        best = state.individuals.headOption,
+        temperature = currentTemperature,
+        lastResults = rotate(computation.lastResults, result)
+      )
+
+      eventuallyUpdateUi(oldBest)
+
+      if (config.hillClimb.active && computation.lastResults.sum < config.hillClimb.slopeHeight && computation.lastResults.length >= config.hillClimb.slopeSize) {
         log.debug("Starting hill climb")
-        self ! RunHillClimb
+        self ! RunHillClimb(sender())
       } else {
         sender() ! GenerationRan(index, state.generation)
       }
 
-    case PopulationActor.RunHillClimb =>
+    case cmd: PopulationActor.RunHillClimb =>
       log.debug("Hill climb")
-      var useHc = true
-      val size = best.get.chromosome.genes.size
+      var continue = true
+      val size = state.bestIndividual.chromosome.genes.size
       var temp = state
       var newBest = temp.individuals.head
-      while (useHc) {
-        val start = if (Random.nextInt(20) < 1) 0 else Math.max(0, size - 1)
+      while (continue) {
+        val start = if (Random.nextInt(100) < config.hillClimb.fullGeneHillClimbChange) 0 else Math.max(0, size - 1)
 
         Range(start, size).map { gene =>
           var oldFitness = temp.bestIndividual.fitness
@@ -105,24 +104,41 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
             updateUI(index, temp.bestIndividual, newFitness - oldFitness, oldFitness, 0)
             oldFitness = temp.bestIndividual.fitness
             log.debug("Hill climb successful " + newFitness)
-            useHc = true
+            continue = true
           } else {
-            useHc = false
+            continue = false
           }
         }
         newBest = temp.individuals.head
       }
 
-      temp = temp.copy(lastResults = List())
+      computation = computation.copy(lastResults = List())
       val fBeforeAdd = temp.bestIndividual.fitness
-      temp = PopulationOps.addGene(temp)
-      updateUI(index, temp.bestIndividual, 0, fBeforeAdd, 0)
+      if (config.hillClimb.addGene) {
+        temp = PopulationOps.addGene(temp)
+        updateUI(index, temp.bestIndividual, 0, fBeforeAdd, 0)
+      }
       state = temp
-      best = state.individuals.headOption
-      sender() ! GenerationRan(index, state.generation)
+      computation = computation.copy(best = state.individuals.headOption)
+
+      cmd.socket ! GenerationRan(index, state.generation)
+
+    case unknown =>
+      log.error("Unknown message {}", unknown)
+      self ! PoisonPill
   }
 
-  def updateUI(populationIndex: Int, best: Individual, increment: Double, oldFitness: Double, otherPopulationIndex: Int): Unit = {
+  private def eventuallyUpdateUi(oldBest: Individual): Unit = {
+    computation.best.foreach { b =>
+      if (b.fitness > oldBest.fitness) {
+        updateUI(index, b, b.fitness - oldBest.fitness, oldBest.fitness, 0)
+      }
+    }
+  }
+
+  private def rotate(list: List[Double], double: Double) = (list :+ double).takeRight(Population.MaxRotate)
+
+  private def updateUI(populationIndex: Int, best: Individual, increment: Double, oldFitness: Double, otherPopulationIndex: Int): Unit = {
     val bi = best.chromosome.toBufferedImage()
 
     val os = new ByteArrayOutputStream()
@@ -155,6 +171,6 @@ object PopulationActor {
 
   case class RunAGeneration(index: Int)
 
-  case object RunHillClimb
+  case class RunHillClimb(socket: ActorRef)
 
 }

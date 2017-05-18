@@ -33,13 +33,10 @@ class HistogramFitness(baseImage: BufferedImage, imageDimension: ImageDimensions
   val baseHistogram = histogram(baseImage, imageDimension)
 
   override def fitness(chromosome: Chromosome): Double = {
-    println("calculate fitness")
-
     implicit val id = imageDimension
     val bi = new ChromosomeToBufferedImage(chromosome).toBufferedImage()(id)
 
     val testHistogram = histogram(bi, id)
-    println("calculate fitness ended")
     1.0d - baseHistogram.chiSquare(testHistogram)
 
   }

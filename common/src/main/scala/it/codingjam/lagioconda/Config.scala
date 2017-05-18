@@ -4,16 +4,18 @@ import it.codingjam.lagioconda.ga.{CrossoverPointLike, MutationPointLike, Random
 import it.codingjam.lagioconda.population.Population
 import it.codingjam.lagioconda.selection.{SelectionFunction, WheelSelection}
 
-case class PopulationConfig(size: Int, eliteCount: Int)
+case class PopulationConfig(size: Int, eliteCount: Int, numberOfGenes: Int)
 
 case class MutationConfig(chance: Int, strategy: MutationPointLike, size: Int, times: Int)
 
 case class AlgorithmConfig(mutation: MutationConfig, crossover: CrossoverPointLike)
 
-case class Config(population: PopulationConfig, algorithm: AlgorithmConfig, selection: SelectionFunction)
+case class Config(population: PopulationConfig, algorithm: AlgorithmConfig, selection: SelectionFunction, hillClimb: HillClimbConfig)
+
+case class HillClimbConfig(active: Boolean, slopeHeight: Double, slopeSize: Int, addGene: Boolean, fullGeneHillClimbChange: Int)
 
 object PopulationConfig {
-  val Default = PopulationConfig(Population.Size, Population.EliteCount)
+  val Default = PopulationConfig(Population.Size, Population.EliteCount, 1)
 }
 
 object AlgorithmConfig {
@@ -25,5 +27,10 @@ object MutationConfig {
 }
 
 object Config {
-  val Default = Config(PopulationConfig.Default, AlgorithmConfig.Default, new WheelSelection)
+  val Default = Config(PopulationConfig.Default, AlgorithmConfig.Default, new WheelSelection, HillClimb.Default)
+}
+
+object HillClimb {
+  val Default =
+    HillClimbConfig(active = true, slopeHeight = 0.0001, slopeSize = Population.MaxRotate, addGene = true, fullGeneHillClimbChange = 5)
 }

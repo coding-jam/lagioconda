@@ -1,12 +1,15 @@
 package it.codingjam.lagioconda
 
+import com.typesafe.scalalogging.{LazyLogging, Logger}
 import it.codingjam.lagioconda.config.Config
 import it.codingjam.lagioconda.ga.{Chromosome, Gene, RandomChromosome}
 import it.codingjam.lagioconda.population.{Individual, Population}
 
 import scala.util.Random
 
-object PopulationOps {
+object PopulationOps extends LazyLogging {
+
+  override lazy val logger = Logger(classOf[Population])
 
   private def sort(list: List[Individual]) = list.sorted(Ordering[Individual]).reverse
 
@@ -42,7 +45,7 @@ object PopulationOps {
   }
 
   def addGene(population: Population)(implicit fitnessCalculator: FitnessCalculator, config: Config): Population = {
-    println("adding gene")
+    logger.debug("Adding gene")
 
     val newGeneration = population.generation + 1
 
@@ -50,7 +53,6 @@ object PopulationOps {
     val clist: List[(Chromosome, String)] =
       Range(0, population.individuals.length).map(i => (bestIndividual.chromosome.addRandomGene, "gene")).toList
     val newIndividuals: List[Individual] = fitnessCalculator.calculate(clist, newGeneration)
-    println("fitness calculated")
 
     population.copy(newGeneration, individuals = sort(newIndividuals))
 
@@ -66,7 +68,8 @@ object PopulationOps {
       }
     }
 
-    println("Hill climb with gene " + gene + " at generation " + population.generation + " fit " + population.bestIndividual.fitness)
+    logger.debug(
+      s"Hill climb with gene ${gene} at generation ${population.generation}, fitness ${population.bestIndividual.fitness.toString}")
 
     def hc(chosen: Individual): Individual = {
       val l: List[(Chromosome, String)] = neighbour(chosen.chromosome, gene).map(x => (x, "hillClimb"))
@@ -75,20 +78,18 @@ object PopulationOps {
       sort(newIndividuals).head
     }
 
-    var i = 1
-    var startingPoint = population.bestIndividual
-    var hillClimber = hc(startingPoint)
-    var bestSoFar = if (startingPoint.fitness > hillClimber.fitness) startingPoint else hillClimber
+    val startingPoint = population.bestIndividual
+    val hillClimber = hc(startingPoint)
+    val bestSoFar = if (startingPoint.fitness > hillClimber.fitness) startingPoint else hillClimber
 
     if (population.bestIndividual.fitness < bestSoFar.fitness) {
       val selected = (List(bestSoFar) ++ population.individuals).dropRight(1)
-      val total = selected.map(_.fitness).sum
-      println("Successfull Hill climb with gene " + gene)
+      logger.debug("Successfully HillClimb with gene ${gene}")
       val lastI = bestSoFar.fitness - population.bestIndividual.fitness
 
       Population(population.generation, selected, gene, rotate(population.lastResults, lastI))
     } else {
-      println("*failed* Hill climb with gene " + gene)
+      logger.debug("Failed* HillClimb with gene ${gene}")
       population.copy(hillClimbedGene = (population.hillClimbedGene + 1) % population.bestIndividual.chromosome.genes.length,
                       lastResults = rotate(population.lastResults, 0.0))
     }
@@ -107,7 +108,7 @@ object PopulationOps {
   def randomGeneration()(implicit fitnessCalculator: FitnessCalculator, config: Config): Population = {
 
     val chromosomeList: List[(Chromosome, String)] =
-      Range(0, Population.Size).map(i => (RandomChromosome.generate(Gene.Size, 1), "gene")).toList
+      Range(0, Population.Size).map(i => (RandomChromosome.generate(Gene.Size, config.population.numberOfGenes), "gene")).toList
     val newIndividuals: List[Individual] = fitnessCalculator.calculate(chromosomeList, 0)
 
     Population(0, sort(newIndividuals), 0, List())

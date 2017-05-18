@@ -6,4 +6,4 @@ import it.codingjam.lagioconda.population.Individual
 case class ComputationContext(best: Option[Individual] = None,
                               hillClimbedGene: Int = 0,
                               lastResults: List[Double] = List(),
-                              temperature: Temperature)
+                              temperature: Temperature = Temperature(1))
