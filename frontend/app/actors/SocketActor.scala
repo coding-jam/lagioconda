@@ -5,6 +5,8 @@ import java.time.{Instant, Duration => JavaDuration}
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSelection, Props}
 import it.codingjam.lagioconda.actors.PopulationActor.{MigrationDone, SetupPopulation}
 import it.codingjam.lagioconda.actors.SocketActor._
+import it.codingjam.lagioconda.config.{Config, PopulationConfig}
+import it.codingjam.lagioconda.population.Population
 import it.codingjam.lagioconda.protocol.InEvent
 import it.codingjam.lagioconda.protocol.Messages.{Start, Statistics}
 
@@ -29,6 +31,9 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
 
   FitnessService.startOn(context.system)
 
+  val populationConfig = PopulationConfig.Default
+  val config = Config.Default
+
   val service: ActorSelection = {
     val path = context.system / "fitnessService"
     context actorSelection path
@@ -49,7 +54,7 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
                                 .withDispatcher("population-actor-dispatcher"),
                               name = "pop" + i)
             populationActors = populationActors :+ a
-            a ! SetupPopulation(i)
+            a ! SetupPopulation(i, config)
           }
         }
       }

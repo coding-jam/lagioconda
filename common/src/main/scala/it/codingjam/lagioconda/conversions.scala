@@ -120,7 +120,7 @@ package object conversions {
       n <- List(0, 10, -10)
     } yield (t._1 + i, t._2 + j, t._3 + k, t._4 + l, t._5 + m, t._6 + n)
 
-    val ii = u.map(e => to8bits(e._1) + to8bits(e._2) + to8bits(e._3, 4) + to8bits(e._4) + to8bits(e._5) + to8bits(e._6))
+    val ii = u.map(e => to8bits(e._1) + to8bits(e._2) + to8bits(e._3) + to8bits(e._4) + to8bits(e._5) + to8bits(e._6))
     scala.concurrent.duration.Deadline
     ii.distinct.map(Gene(_))
 

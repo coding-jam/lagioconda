@@ -6,7 +6,7 @@
   const onmessage = (event) => {
     const data = JSON.parse(event.data)
 
-    if (data.msg === "Individual"){
+    if (data.msg === "IndividualInfo"){
 
       const img = document.getElementById('img' + data.population)
 

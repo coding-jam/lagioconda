@@ -5,15 +5,16 @@ import java.io.{ByteArrayOutputStream, File}
 import javax.imageio.ImageIO
 
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSelection, Props}
-import it.codingjam.lagioconda.actors.PopulationActor.{Migrate, Migration, MigrationDone, SetupPopulation}
+import it.codingjam.lagioconda.actors.PopulationActor.SetupPopulation
 import it.codingjam.lagioconda.actors.SocketActor.{GenerationRan, PopulationGenerated}
+import it.codingjam.lagioconda.config.Config
 import it.codingjam.lagioconda.conversions.ChromosomeToBufferedImage
 import it.codingjam.lagioconda.fitness.ByteComparisonFitness
 import it.codingjam.lagioconda.ga.{MutationPointLike, _}
-import it.codingjam.lagioconda.population.Individual
+import it.codingjam.lagioconda.population.{Individual, Population}
 import it.codingjam.lagioconda.protocol.Messages.IndividualInfo
 import it.codingjam.lagioconda.selection.WheelSelection
-import it.codingjam.lagioconda.{Configuration, ImageDimensions, Population}
+import it.codingjam.lagioconda.{Configuration, FitnessCalculator, ImageDimensions, PopulationOps}
 import org.apache.commons.codec.binary.Base64OutputStream
 
 import scala.util.Random
@@ -25,6 +26,8 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
   var n = 0
   var index = -1
   implicit val scheduler = context.system.scheduler
+  implicit var config: Config = Config.Default
+  implicit val ec = this.context.dispatcher
 
   val file = new File("frontend/public/images/monalisasmall2.png")
 
@@ -41,6 +44,8 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
   implicit val selection = new WheelSelection
   implicit val fitness = new ByteComparisonFitness(convertedImg, dimension)
 
+  implicit val fitnessCalculator = FitnessCalculator(service, fitness, dimension)
+
   var best: Option[Individual] = None
   var initialBest = 0.0
   implicit var temperature = Temperature(1.0)
@@ -48,7 +53,8 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
 
   override def receive: Receive = {
     case cmd: SetupPopulation =>
-      state = Population.randomGeneration()
+      state = PopulationOps.randomGeneration()
+      config = cmd.config
       index = cmd.index
       best = state.individuals.headOption
       best.foreach(updateUI(cmd.index, _, 0.0, state.generation, 0.0, 0))
@@ -61,7 +67,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
       val oldBest: Option[Individual] = best
       implicit val ec = context.dispatcher
 
-      state = state.nextGeneration(service)
+      state = PopulationOps.crossover(state)
 
       temperature = Temperature(((1.0 - state.individuals.head.fitness) / (1.0 - initialBest)))
       //log.debug("Temperature " + temperature)
@@ -90,7 +96,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
 
           Range(start, size).map { gene =>
             var oldFitness = temp.bestIndividual.fitness
-            temp = temp.hillClimb(service, ec, temperature, gene)
+            temp = PopulationOps.hillClimb(temp, gene)
             if (temp.bestIndividual.fitness > oldFitness) {
               val newFitness = temp.bestIndividual.fitness
               updateUI(cmd.index, temp.bestIndividual, newFitness - oldFitness, state.generation, oldFitness, 0)
@@ -106,30 +112,13 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
 
         temp = temp.copy(lastResults = List())
         val fBeforeAdd = temp.bestIndividual.fitness
-        temp = temp.addGene(service)
+        temp = PopulationOps.addGene(temp)
         updateUI(cmd.index, temp.bestIndividual, 0, state.generation, fBeforeAdd, 0)
         state = temp
         best = state.individuals.headOption
       }
 
       sender() ! GenerationRan(cmd.index, state.generation)
-
-    case cmd: Migrate =>
-      val l = Range(0, Population.EliteCount).map(_ => state.randomElite).toList
-      cmd.otherPopulation ! Migration(cmd.index, l, cmd.otherPopulationIndex)
-      sender ! MigrationDone(index)
-
-    case cmd: Migration =>
-      val oldBest = best
-      state = state.doMigration(cmd.list, service, context.dispatcher, cmd.otherPopulationIndex)
-      best = state.individuals.headOption
-      best.foreach { b =>
-        oldBest.foreach { old =>
-          if (b.fitness > old.fitness) {
-            updateUI(cmd.index, b, b.fitness - old.fitness, state.generation, old.fitness, cmd.otherPopulationIndex)
-          }
-        }
-      }
 
   }
 
@@ -166,7 +155,7 @@ object PopulationActor {
 
   def props(service: ActorSelection, out: ActorRef): Props = Props(new PopulationActor(service, out))
 
-  case class SetupPopulation(index: Int)
+  case class SetupPopulation(index: Int, config: Config)
 
   case class Mutate(index: Int)
 

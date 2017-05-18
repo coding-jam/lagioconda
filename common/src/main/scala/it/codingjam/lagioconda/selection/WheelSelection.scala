@@ -1,6 +1,6 @@
 package it.codingjam.lagioconda.selection
 
-import it.codingjam.lagioconda.population.Individual
+import it.codingjam.lagioconda.population.{Individual, Population}
 
 import scala.util.Random
 

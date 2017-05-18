@@ -27,7 +27,7 @@ lazy val common = (project in file("common"))
       "openImaJ repo" at "http://maven.openimaj.org",
       "Semantic Desktop" at "http://aperture.sourceforge.net/maven"
     ),
-    libraryDependencies ++= Dependencies.openimaj ++ Dependencies.common,
+    libraryDependencies ++= Dependencies.openimaj ++ Dependencies.common ++ Dependencies.logging,
     commonSettings
   )
 
