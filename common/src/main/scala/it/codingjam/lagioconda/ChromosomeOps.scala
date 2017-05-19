@@ -1,6 +1,6 @@
 package it.codingjam.lagioconda
 
-import it.codingjam.lagioconda.ga.{Chromosome, CrossoverPointLike, Gene, RandomGene}
+import it.codingjam.lagioconda.ga.{Chromosome, CrossoverPointLike, Gene}
 
 import scala.util.Random
 
@@ -15,7 +15,7 @@ object ChromosomeOps {
         case (g1, g2) => g1.crossOver(g2)(crossoverPoint)
       }
 
-    Chromosome(l)
+    Chromosome(l, one.geneMapping)
   }
 
   val uniformCrossover = (one: Chromosome, other: Chromosome, crossoverPoint: CrossoverPointLike) => {
@@ -24,7 +24,7 @@ object ChromosomeOps {
       .map { case (g1, g2) => shuffle(g1, g2) }
       .unzip
 
-    Chromosome(l._1)
+    Chromosome(l._1, one.geneMapping)
   }
 
   private def shuffle(g1: Gene, g2: Gene): (Gene, Gene) = {

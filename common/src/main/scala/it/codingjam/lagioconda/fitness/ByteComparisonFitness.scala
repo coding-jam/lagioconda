@@ -2,7 +2,7 @@ package it.codingjam.lagioconda.fitness
 
 import java.awt.image.{BufferedImage, DataBufferByte}
 
-import it.codingjam.lagioconda.ImageDimensions
+import it.codingjam.lagioconda.{GeneMapping, ImageDimensions}
 import it.codingjam.lagioconda.conversions._
 import it.codingjam.lagioconda.ga.Chromosome
 
@@ -10,10 +10,10 @@ class ByteComparisonFitness(baseImage: BufferedImage, imageDimension: ImageDimen
 
   val baseImageAsBytes = baseImage.getRaster().getDataBuffer().asInstanceOf[DataBufferByte].getData()
 
-  override def fitness(chromosome: Chromosome): Double = {
+  override def fitness(chromosome: Chromosome, alpha: Int): Double = {
 
     implicit val id = imageDimension
-    val bi = new ChromosomeToBufferedImage(chromosome).toBufferedImage()(id)
+    val bi = new ChromosomeToBufferedImage(chromosome).toBufferedImage(alpha)(id)
 
     val imageInByte: Array[Byte] = bi.getRaster().getDataBuffer().asInstanceOf[DataBufferByte].getData()
 

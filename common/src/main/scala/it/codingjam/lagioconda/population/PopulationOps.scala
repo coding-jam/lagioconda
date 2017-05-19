@@ -61,8 +61,9 @@ object PopulationOps extends LazyLogging {
     def rotate(list: List[Double], double: Double) = (list :+ double).takeRight(Population.MaxRotate)
 
     def neighbour(chromosome: Chromosome, gene: Int): List[Chromosome] = {
-      it.codingjam.lagioconda.conversions.neigh(chromosome.genes(gene)).map { g =>
-        Chromosome(chromosome.genes.slice(0, gene) ++ List(g) ++ chromosome.genes.slice(gene + 1, chromosome.genes.length))
+      it.codingjam.lagioconda.conversions.neigh(chromosome.genes(gene))(chromosome.geneMapping).map { g =>
+        Chromosome(chromosome.genes.slice(0, gene) ++ List(g) ++ chromosome.genes.slice(gene + 1, chromosome.genes.length),
+                   chromosome.geneMapping)
       }
     }
 
@@ -105,8 +106,10 @@ object PopulationOps extends LazyLogging {
 
   def randomGeneration()(implicit fitnessCalculator: FitnessCalculator, config: Config): Population = {
 
+    val r = Range(0, Population.Size)
+
     val chromosomeList: List[(Chromosome, String)] =
-      Range(0, Population.Size).map(i => (RandomChromosome.generate(Gene.Size, config.population.numberOfGenes), "gene")).toList
+      r.map(i => (RandomChromosome.generate(Gene.Size, config.population.numberOfGenes, config.population.geneMapping), "gene")).toList
     val newIndividuals: List[Individual] = fitnessCalculator.calculate(chromosomeList, 0)
 
     Population(0, sort(newIndividuals), 0, List())
