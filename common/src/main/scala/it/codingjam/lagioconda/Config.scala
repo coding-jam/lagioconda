@@ -41,16 +41,16 @@ object MutationConfig {
 
 object HillClimb {
   val Default =
-    HillClimbConfig(active = true, slopeHeight = 0.0001, slopeSize = Population.MaxRotate, addGene = false, fullGeneHillClimbChange = 5)
+    HillClimbConfig(active = true, slopeHeight = 0.001, slopeSize = 100, addGene = false, fullGeneHillClimbChange = 5)
 
   val Off = Default.copy(active = false)
 
-  val VecGenLike = Default.copy(addGene = true)
+  val VecGenLike = Default.copy(addGene = true, slopeHeight = 0.0001, slopeSize = 500)
 }
 
 object Config {
 
-  val VanillaGa = Config(PopulationConfig.Default, 128, AlgorithmConfig.Default, new WheelSelection, HillClimb.Off)
+  val VanillaGa = Config(PopulationConfig.Default, 255, AlgorithmConfig.Default, new WheelSelection, HillClimb.Off)
 
   val GaWithHillClimb = Config(PopulationConfig.Default, 255, AlgorithmConfig.Default, new WheelSelection, HillClimb.Default)
 
