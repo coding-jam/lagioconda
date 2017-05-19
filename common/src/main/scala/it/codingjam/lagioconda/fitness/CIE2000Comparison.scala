@@ -3,6 +3,7 @@ package it.codingjam.lagioconda.fitness
 import java.awt.image.{BufferedImage, DataBufferByte}
 
 import it.codingjam.lagioconda.ImageDimensions
+import it.codingjam.lagioconda.config.Config
 import it.codingjam.lagioconda.conversions.ChromosomeToBufferedImage
 import it.codingjam.lagioconda.ga.Chromosome
 import org.openimaj.image.ImageUtilities
@@ -22,10 +23,10 @@ class CIE2000Comparison(baseImage: BufferedImage, imageDimension: ImageDimension
   var cacheHit = 0
   var lastSize = 0
 
-  override def fitness(chromosome: Chromosome): Double = {
+  override def fitness(chromosome: Chromosome, alpha: Int): Double = {
 
     implicit val id = imageDimension
-    val bi = new ChromosomeToBufferedImage(chromosome).toBufferedImage()(id)
+    val bi = new ChromosomeToBufferedImage(chromosome).toBufferedImage(alpha)(id)
     val biInInt = bi.getRaster().getDataBuffer().asInstanceOf[DataBufferByte].getData()
 
     var sum = 0.0d

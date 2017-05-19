@@ -11,7 +11,7 @@ import scala.collection.immutable
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 
-case class FitnessCalculator(fitnessService: ActorSelection, fitnessFunction: FitnessFunction, dimension: ImageDimensions)(
+case class FitnessCalculator(fitnessService: ActorSelection, fitnessFunction: FitnessFunction, dimension: ImageDimensions, alpha: Int)(
     implicit executionContext: ExecutionContext,
     scheduler: Scheduler)
     extends Retrying {
@@ -20,7 +20,7 @@ case class FitnessCalculator(fitnessService: ActorSelection, fitnessFunction: Fi
 
   def calculate(cList: List[(Chromosome, String)], generation: Int): List[Individual] = {
     val futures: immutable.Seq[Future[Individual]] = cList.map { chromosome =>
-      (fitnessService ? CalculateFitness(chromosome._1, generation, chromosome._2)).mapTo[CalculatedFitness].map { cf =>
+      (fitnessService ? CalculateFitness(chromosome._1, alpha, generation, chromosome._2)).mapTo[CalculatedFitness].map { cf =>
         Individual(cf.chromosome, cf.fitness, cf.reason, generation)
       }
     }

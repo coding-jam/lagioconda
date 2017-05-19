@@ -15,8 +15,6 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
 
   implicit val executor = context.system.dispatcher
 
-  val MaxPopulation = 1
-
   var populationActors: List[ActorRef] = List()
   var generationCounter = 0
   var oldGenerationCounter = 0
@@ -26,9 +24,9 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
   self ! Start(0)
 
   FitnessService.startOn(context.system)
-
-  val populationConfig = PopulationConfig.Default
-  val config = Config.Default
+// Config.VanillaGa, Config.GaWithHillClimb,
+  val configs = List(Config.GaWithHillClimb)
+  val maxPopulation = configs.size
 
   val service: ActorSelection = {
     val path = context.system / "fitnessService"
@@ -41,13 +39,13 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
     case msg: InEvent =>
       Thread.sleep(1000)
       if (populationActors.length == 0) {
-        log.info(s"Starting generation of $MaxPopulation populations")
+        log.info(s"Starting generation of $maxPopulation populations")
         if (populationActors.isEmpty) {
-          Range(0, MaxPopulation).foreach { i =>
+          configs.zipWithIndex.foreach { c =>
             val a =
-              context.actorOf(PopulationActor.props(service, out).withDispatcher("population-actor-dispatcher"), name = "pop" + i)
+              context.actorOf(PopulationActor.props(service, out).withDispatcher("population-actor-dispatcher"), name = "pop" + c._2)
             populationActors = populationActors :+ a
-            a ! SetupPopulation(i, config)
+            a ! SetupPopulation(c._2, c._1)
           }
         }
       }
@@ -64,10 +62,10 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
       val d = JavaDuration.between(startedAt, Instant.now)
       val u = List(d.getSeconds)
 
-      val rate = generationCounter.toDouble / MaxPopulation.toDouble / d.getSeconds
+      val rate = generationCounter.toDouble / maxPopulation.toDouble / d.getSeconds
       oldGenerationCounter = generationCounter
       val output = List(
-        s"Current generation: ${generationCounter / MaxPopulation}",
+        s"Current generation: ${generationCounter / maxPopulation}",
         s"Rate: Generation/s = ${rate}",
         timeDifference()
       ).mkString("<br/>")
@@ -97,8 +95,7 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
 }
 
 object SocketActor {
-  def props(out: ActorRef) =
-    Props(new SocketActor(out))
+  def props(out: ActorRef) = Props(new SocketActor(out))
 
   case object GenerateAction
 

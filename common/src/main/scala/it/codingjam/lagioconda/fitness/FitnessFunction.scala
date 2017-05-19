@@ -4,5 +4,5 @@ import it.codingjam.lagioconda.ga.Chromosome
 
 trait FitnessFunction {
 
-  def fitness(chromosome: Chromosome): Double
+  def fitness(chromosome: Chromosome, alpha: Int): Double
 }

@@ -4,6 +4,7 @@ import java.awt.geom.Ellipse2D
 import java.awt.image.BufferedImage
 import java.awt.{Graphics2D, RenderingHints}
 
+import it.codingjam.lagioconda.config.Config
 import it.codingjam.lagioconda.ga.{Gene, _}
 
 package object conversions {
@@ -70,9 +71,9 @@ package object conversions {
 
   implicit class GeneToCircle(gene: Gene) {
 
-    def toCircle: Circle = {
+    def toCircle(alpha: Int): Circle = {
       val c = toComponents(gene)
-      Circle(Center(c._1, c._2), c._3, Color(c._4, c._5, c._6, Gene.alfa))
+      Circle(Center(c._1, c._2), c._3, Color(c._4, c._5, c._6, alpha))
     }
   }
 
@@ -128,9 +129,9 @@ package object conversions {
 
   implicit class ChromosomeToBufferedImage(chromosome: Chromosome) {
 
-    def toBufferedImage()(implicit dimensions: ImageDimensions): BufferedImage = {
+    def toBufferedImage(alpha: Int)(implicit dimensions: ImageDimensions): BufferedImage = {
 
-      val circles: List[Circle] = chromosome.genes.map(_.toCircle)
+      val circles: List[Circle] = chromosome.genes.map(_.toCircle(alpha))
 
       val image = new BufferedImage(dimensions.width, dimensions.height, BufferedImage.TYPE_3BYTE_BGR);
 

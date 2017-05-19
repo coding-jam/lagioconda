@@ -24,10 +24,10 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
   private var state = Population(0, List[Individual](), 0, List())
   private var index = -1
   private implicit val scheduler = context.system.scheduler
-  private implicit var config: Config = Config.Default
+  private implicit var config: Config = _
   private implicit val ec = this.context.dispatcher
 
-  private val file = new File("frontend/public/images/monalisasmall2.png")
+  private val file = new File("frontend/public/images/monalisa.png")
 
   private val reference = ImageIO.read(file)
 
@@ -38,7 +38,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
   private implicit val fitness = new ByteComparisonFitness(convertedImg, dimension)
   private var computation = new ComputationContext
 
-  private implicit val fitnessCalculator = FitnessCalculator(service, fitness, dimension)
+  private implicit var fitnessCalculator: FitnessCalculator = _
 
   private var initialBest = 0.0
 
@@ -48,8 +48,9 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
 
   override def receive: Receive = {
     case cmd: PopulationActor.SetupPopulation =>
-      state = PopulationOps.randomGeneration()
       config = cmd.config
+      fitnessCalculator = FitnessCalculator(service, fitness, dimension, cmd.config.alpha)
+      state = PopulationOps.randomGeneration()
       index = cmd.index
       computation = computation.copy(best = state.individuals.headOption)
       computation.best.foreach(updateUI(cmd.index, _, 0.0, 0.0, 0))
@@ -133,7 +134,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
   private def rotate(list: List[Double], double: Double) = (list :+ double).takeRight(Population.MaxRotate)
 
   private def updateUI(populationIndex: Int, best: Individual, increment: Double, oldFitness: Double, otherPopulationIndex: Int): Unit = {
-    val bufferedImage: BufferedImage = best.chromosome.toBufferedImage()
+    val bufferedImage: BufferedImage = best.chromosome.toBufferedImage(config.alpha)
     val outputStream = new ByteArrayOutputStream()
     val base64OutputStream: Base64OutputStream = new Base64OutputStream(outputStream)
 

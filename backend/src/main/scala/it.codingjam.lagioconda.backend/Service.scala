@@ -11,7 +11,7 @@ import it.codingjam.lagioconda.protocol.Message.{CalculateFitness, CalculatedFit
 
 class WorkerActor extends Actor with ActorLogging {
 
-  private val file = new File("src/main/resources/monalisasmall2.png")
+  private val file = new File("src/main/resources/monalisa.png")
 
   private val reference = ImageIO.read(file)
   private implicit val dimension = ImageDimensions(reference.getWidth, reference.getHeight)
@@ -23,7 +23,7 @@ class WorkerActor extends Actor with ActorLogging {
 
   def receive = {
     case message: CalculateFitness =>
-      sender() ! CalculatedFitness(message.chromosome, message.reason, fitnessFunction.fitness(message.chromosome))
+      sender() ! CalculatedFitness(message.chromosome, message.reason, fitnessFunction.fitness(message.chromosome, message.alpha))
     case x =>
       log.error("Undefined command {}", x)
   }

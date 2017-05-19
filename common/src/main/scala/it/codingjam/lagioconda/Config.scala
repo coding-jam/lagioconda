@@ -12,12 +12,18 @@ case class MutationConfig(chance: Int, strategy: MutationPointLike, size: Int, t
 
 case class AlgorithmConfig(mutation: MutationConfig, crossoverPoint: CrossoverPointLike, crossover: CombineChromosome)
 
-case class Config(population: PopulationConfig, algorithm: AlgorithmConfig, selection: SelectionFunction, hillClimb: HillClimbConfig)
+case class Config(population: PopulationConfig,
+                  alpha: Int,
+                  algorithm: AlgorithmConfig,
+                  selection: SelectionFunction,
+                  hillClimb: HillClimbConfig)
 
 case class HillClimbConfig(active: Boolean, slopeHeight: Double, slopeSize: Int, addGene: Boolean, fullGeneHillClimbChange: Int)
 
 object PopulationConfig {
-  val Default = PopulationConfig(Population.Size, Population.EliteCount, 1)
+  val Default = PopulationConfig(Population.Size, Population.EliteCount, 250)
+
+  val VecGen = PopulationConfig(Population.Size, Population.EliteCount, 1)
 }
 
 object AlgorithmConfig {
@@ -25,14 +31,24 @@ object AlgorithmConfig {
 }
 
 object MutationConfig {
-  val Default = MutationConfig(chance = 15, strategy = new RandomMutationPoint, 1, 1)
-}
-
-object Config {
-  val Default = Config(PopulationConfig.Default, AlgorithmConfig.Default, new WheelSelection, HillClimb.Default)
+  val Default = MutationConfig(chance = 5, strategy = new RandomMutationPoint, 1, 1)
 }
 
 object HillClimb {
   val Default =
-    HillClimbConfig(active = true, slopeHeight = 0.0001, slopeSize = Population.MaxRotate, addGene = true, fullGeneHillClimbChange = 5)
+    HillClimbConfig(active = true, slopeHeight = 0.0001, slopeSize = Population.MaxRotate, addGene = false, fullGeneHillClimbChange = 5)
+
+  val Off = Default.copy(active = false)
+
+  val VecGenLike = Default.copy(addGene = true)
+}
+
+object Config {
+
+  val VanillaGa = Config(PopulationConfig.Default, 128, AlgorithmConfig.Default, new WheelSelection, HillClimb.Off)
+
+  val GaWithHillClimb = Config(PopulationConfig.Default, 128, AlgorithmConfig.Default, new WheelSelection, HillClimb.Default)
+
+  val VecGenLike = Config(PopulationConfig.VecGen, 220, AlgorithmConfig.Default, new WheelSelection, HillClimb.VecGenLike)
+
 }

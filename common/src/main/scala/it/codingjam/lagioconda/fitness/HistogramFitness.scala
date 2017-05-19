@@ -3,6 +3,7 @@ package it.codingjam.lagioconda.fitness
 import java.awt.image.{BufferedImage, DataBufferByte}
 
 import it.codingjam.lagioconda.ImageDimensions
+import it.codingjam.lagioconda.config.Config
 import it.codingjam.lagioconda.conversions.ChromosomeToBufferedImage
 import it.codingjam.lagioconda.ga.Chromosome
 
@@ -32,9 +33,9 @@ class HistogramFitness(baseImage: BufferedImage, imageDimension: ImageDimensions
 
   val baseHistogram = histogram(baseImage, imageDimension)
 
-  override def fitness(chromosome: Chromosome): Double = {
+  override def fitness(chromosome: Chromosome, alpha: Int): Double = {
     implicit val id = imageDimension
-    val bi = new ChromosomeToBufferedImage(chromosome).toBufferedImage()(id)
+    val bi = new ChromosomeToBufferedImage(chromosome).toBufferedImage(alpha)(id)
 
     val testHistogram = histogram(bi, id)
     1.0d - baseHistogram.chiSquare(testHistogram)

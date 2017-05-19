@@ -15,18 +15,27 @@
 
 <body>
 <h1>La Gioconda</h1>
+<h3>Image copy using genetic algorithm with an Akka cluster backend</h3>
 <span data-status class="lead">Status</span>
 <button class="btn btn-success" onclick="send()">Ask</button>
 <div class="row">
     <div class="col-xs-3">
+        <div><p>Original image</p></div>
+        <div><img id="base" src="assets/images/monalisa.png"  height="256" width="256"/></div>
+    </div>
+
+    <div class="col-xs-3">
+        <div><p>Crossover and mutation</p></div>
         <div><img id="img0"/></div>
         <div><label id="pop0"/></div>
     </div>
     <div class="col-xs-3">
+        <div><p>Crossover,mutation and hill climb</p></div>
         <div><img id="img1"/></div>
         <div><label id="pop1"/></div>
     </div>
     <div class="col-xs-3">
+        <div><p>Vecgen like</p></div>
         <div><img id="img2"/></div>
         <div><label id="pop2"/></div>
     </div>

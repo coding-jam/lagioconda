@@ -105,8 +105,13 @@ object PopulationOps extends LazyLogging {
 
   def randomGeneration()(implicit fitnessCalculator: FitnessCalculator, config: Config): Population = {
 
+    val r = Range(0, Population.Size)
+    println(config)
+    println(config.population)
+    println(config.population.numberOfGenes)
+    val g = RandomChromosome.generate(Gene.Size, config.population.numberOfGenes)
     val chromosomeList: List[(Chromosome, String)] =
-      Range(0, Population.Size).map(i => (RandomChromosome.generate(Gene.Size, config.population.numberOfGenes), "gene")).toList
+      r.map(i => (RandomChromosome.generate(Gene.Size, config.population.numberOfGenes), "gene")).toList
     val newIndividuals: List[Individual] = fitnessCalculator.calculate(chromosomeList, 0)
 
     Population(0, sort(newIndividuals), 0, List())

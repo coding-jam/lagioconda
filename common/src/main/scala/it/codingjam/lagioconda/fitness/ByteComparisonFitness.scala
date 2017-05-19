@@ -10,10 +10,10 @@ class ByteComparisonFitness(baseImage: BufferedImage, imageDimension: ImageDimen
 
   val baseImageAsBytes = baseImage.getRaster().getDataBuffer().asInstanceOf[DataBufferByte].getData()
 
-  override def fitness(chromosome: Chromosome): Double = {
+  override def fitness(chromosome: Chromosome, alpha: Int): Double = {
 
     implicit val id = imageDimension
-    val bi = new ChromosomeToBufferedImage(chromosome).toBufferedImage()(id)
+    val bi = new ChromosomeToBufferedImage(chromosome).toBufferedImage(alpha)(id)
 
     val imageInByte: Array[Byte] = bi.getRaster().getDataBuffer().asInstanceOf[DataBufferByte].getData()
 
