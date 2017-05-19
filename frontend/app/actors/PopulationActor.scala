@@ -13,7 +13,7 @@ import it.codingjam.lagioconda.conversions.ChromosomeToBufferedImage
 import it.codingjam.lagioconda.fitness.ByteComparisonFitness
 import it.codingjam.lagioconda.ga._
 import it.codingjam.lagioconda.population.{Individual, Population}
-import it.codingjam.lagioconda.{FitnessCalculator, ImageDimensions, PopulationOps}
+import it.codingjam.lagioconda.{FitnessCalculator, GeneMapping, ImageDimensions, PopulationOps}
 import org.apache.commons.codec.binary.Base64OutputStream
 import protocol.Messages.IndividualInfo
 
@@ -56,7 +56,6 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
       computation.best.foreach(updateUI(cmd.index, _, 0.0, 0.0, 0))
       initialBest = state.individuals.head.fitness
       log.debug(s"Initial Best $initialBest")
-
       sender() ! PopulationGenerated(cmd.index, state.generation)
 
     case cmd: PopulationActor.RunAGeneration =>

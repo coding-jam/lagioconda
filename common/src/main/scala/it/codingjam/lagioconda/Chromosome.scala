@@ -1,14 +1,16 @@
 package it.codingjam.lagioconda.ga
 
+import it.codingjam.lagioconda.GeneMapping
+
 import scala.util.Random
 
-case class Chromosome(genes: List[Gene]) {
+case class Chromosome(genes: List[Gene], geneMapping: GeneMapping) {
 
   private def mutate(implicit mutationPoint: MutationPointLike, mutationSize: Int): Chromosome = {
     val position = Random.nextInt(genes.size)
-    Chromosome(
-      (genes.slice(0, position) :+ genes(position).mutation(mutationSize)) ++ genes
-        .slice(position + 1, genes.length))
+    Chromosome((genes.slice(0, position) :+ genes(position).mutation(mutationSize)) ++ genes
+                 .slice(position + 1, genes.length),
+               geneMapping)
   }
 
   def mutate(times: Int)(implicit mutationPoint: MutationPointLike, mutationSize: Int): Chromosome = {
@@ -20,7 +22,7 @@ case class Chromosome(genes: List[Gene]) {
   }
 
   private def neighbour(gene: Int, position: Int)(implicit mutationPointLike: MutationPointLike) = {
-    Chromosome((genes.slice(0, gene) :+ genes(gene).neighbour(position)) ++ genes.slice(gene + 1, genes.length))
+    Chromosome((genes.slice(0, gene) :+ genes(gene).neighbour(position)) ++ genes.slice(gene + 1, genes.length), geneMapping)
   }
 
   def addRandomGene() = {

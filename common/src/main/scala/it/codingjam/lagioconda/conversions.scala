@@ -8,20 +8,6 @@ import it.codingjam.lagioconda.ga.{Gene, _}
 
 package object conversions {
 
-  def toComponents(gene: Gene): (Int, Int, Int, Int, Int, Int) = {
-
-    def parse(s: String) = Integer.parseInt(s, 2)
-
-    val x = parse(gene.binaryString.substring(0, 8))
-    val y = parse(gene.binaryString.substring(8, 16))
-    val radius = (parse(gene.binaryString.substring(16, 24))) / 16
-    val red = parse(gene.binaryString.substring(24, 32))
-    val green = parse(gene.binaryString.substring(32, 40))
-    val blue = parse(gene.binaryString.substring(40, 48))
-
-    (x, y, radius, red, green, blue)
-  }
-
   implicit class CircleToGene(circle: Circle) {
 
     private def to5bits(i: Int) = {
@@ -70,13 +56,13 @@ package object conversions {
 
   implicit class GeneToCircle(gene: Gene) {
 
-    def toCircle(alpha: Int): Circle = {
-      val c = toComponents(gene)
+    def toCircle(alpha: Int)(implicit gm: GeneMapping): Circle = {
+      val c = gm.toComponents(gene)
       Circle(Center(c._1, c._2), c._3, Color(c._4, c._5, c._6, alpha))
     }
   }
 
-  def neigh(gene: Gene): List[Gene] = {
+  def neigh(gene: Gene)(implicit geneMapping: GeneMapping): List[Gene] = {
 
     def to2bits(i: Int) = {
       val k = (i + 4) % 4
@@ -109,7 +95,7 @@ package object conversions {
       "%08d".format(k.toBinaryString.toInt)
     }
 
-    val t = toComponents(gene)
+    val t = geneMapping.toComponents(gene)
 
     val u = for {
       i <- List(0, 4, -4)
@@ -130,9 +116,9 @@ package object conversions {
 
     def toBufferedImage(alpha: Int)(implicit dimensions: ImageDimensions): BufferedImage = {
 
-      val circles: List[Circle] = chromosome.genes.map(_.toCircle(alpha))
+      val circles: List[Circle] = chromosome.genes.map(_.toCircle(alpha)(chromosome.geneMapping))
 
-      val image = new BufferedImage(dimensions.width, dimensions.height, BufferedImage.TYPE_3BYTE_BGR);
+      val image = new BufferedImage(dimensions.width, dimensions.height, BufferedImage.TYPE_3BYTE_BGR)
 
       val g2: Graphics2D = image.createGraphics()
 

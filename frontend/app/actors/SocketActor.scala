@@ -25,7 +25,7 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
 
   FitnessService.startOn(context.system)
 // Config.VanillaGa, Config.GaWithHillClimb,
-  val configs = List(Config.GaWithHillClimb)
+  val configs = List(Config.VanillaGa)
   val maxPopulation = configs.size
 
   val service: ActorSelection = {

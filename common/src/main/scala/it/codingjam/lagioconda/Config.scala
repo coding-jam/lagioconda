@@ -1,12 +1,12 @@
 package it.codingjam.lagioconda.config
 
-import it.codingjam.lagioconda.ChromosomeOps
+import it.codingjam.lagioconda.{ChromosomeOps, GeneMapping}
 import it.codingjam.lagioconda.ChromosomeOps.CombineChromosome
 import it.codingjam.lagioconda.ga.{CrossoverPointLike, MutationPointLike, RandomCrossoverPoint, RandomMutationPoint}
 import it.codingjam.lagioconda.population.Population
 import it.codingjam.lagioconda.selection.{SelectionFunction, WheelSelection}
 
-case class PopulationConfig(size: Int, eliteCount: Int, numberOfGenes: Int)
+case class PopulationConfig(size: Int, eliteCount: Int, numberOfGenes: Int, geneMapping: GeneMapping)
 
 case class MutationConfig(chance: Int, strategy: MutationPointLike, size: Int, times: Int)
 
@@ -20,10 +20,15 @@ case class Config(population: PopulationConfig,
 
 case class HillClimbConfig(active: Boolean, slopeHeight: Double, slopeSize: Int, addGene: Boolean, fullGeneHillClimbChange: Int)
 
-object PopulationConfig {
-  val Default = PopulationConfig(Population.Size, Population.EliteCount, 250)
+object GeneMappingConfig {
+  val Default = GeneMapping(8, 16, 24, 32, 40, 48)
+  val SmallRadius = GeneMapping(8, 16, 20, 28, 36, 44)
+}
 
-  val VecGen = PopulationConfig(Population.Size, Population.EliteCount, 1)
+object PopulationConfig {
+  val Default = PopulationConfig(Population.Size, Population.EliteCount, 250, GeneMappingConfig.SmallRadius)
+
+  val VecGen = PopulationConfig(Population.Size, Population.EliteCount, 1, GeneMappingConfig.Default)
 }
 
 object AlgorithmConfig {

@@ -2,7 +2,7 @@ package it.codingjam.lagioconda.fitness
 
 import java.awt.image.{BufferedImage, DataBufferByte}
 
-import it.codingjam.lagioconda.ImageDimensions
+import it.codingjam.lagioconda.{GeneMapping, ImageDimensions}
 import it.codingjam.lagioconda.conversions._
 import it.codingjam.lagioconda.ga.Chromosome
 
