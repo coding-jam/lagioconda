@@ -4,7 +4,6 @@ import java.awt.geom.Ellipse2D
 import java.awt.image.BufferedImage
 import java.awt.{Graphics2D, RenderingHints}
 
-import it.codingjam.lagioconda.config.Config
 import it.codingjam.lagioconda.ga.{Gene, _}
 
 package object conversions {
@@ -15,7 +14,7 @@ package object conversions {
 
     val x = parse(gene.binaryString.substring(0, 8))
     val y = parse(gene.binaryString.substring(8, 16))
-    val radius = (parse(gene.binaryString.substring(16, 24)))
+    val radius = (parse(gene.binaryString.substring(16, 24))) / 16
     val red = parse(gene.binaryString.substring(24, 32))
     val green = parse(gene.binaryString.substring(32, 40))
     val blue = parse(gene.binaryString.substring(40, 48))

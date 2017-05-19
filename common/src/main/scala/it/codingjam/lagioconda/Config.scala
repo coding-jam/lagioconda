@@ -47,7 +47,7 @@ object Config {
 
   val VanillaGa = Config(PopulationConfig.Default, 128, AlgorithmConfig.Default, new WheelSelection, HillClimb.Off)
 
-  val GaWithHillClimb = Config(PopulationConfig.Default, 128, AlgorithmConfig.Default, new WheelSelection, HillClimb.Default)
+  val GaWithHillClimb = Config(PopulationConfig.Default, 255, AlgorithmConfig.Default, new WheelSelection, HillClimb.Default)
 
   val VecGenLike = Config(PopulationConfig.VecGen, 220, AlgorithmConfig.Default, new WheelSelection, HillClimb.VecGenLike)
 
