@@ -18,4 +18,7 @@ case class GeneMapping(mX: Int, mY: Int, mR: Int, mRed: Int, mGreen: Int, mBlue:
     (x, y, radius, red, green, blue)
   }
 
+  def toList = List(mX, mY, mR, mRed, mGreen, mBlue)
+
+  def sizes = toList.zip(0 :: toList).map(x => x._1 - x._2)
 }

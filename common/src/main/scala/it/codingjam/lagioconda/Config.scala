@@ -18,7 +18,13 @@ case class Config(population: PopulationConfig,
                   selection: SelectionFunction,
                   hillClimb: HillClimbConfig)
 
-case class HillClimbConfig(active: Boolean, slopeHeight: Double, slopeSize: Int, addGene: Boolean, fullGeneHillClimbChange: Int)
+case class HillClimbConfig(active: Boolean,
+                           slopeHeight: Double,
+                           slopeSize: Int,
+                           addGene: Boolean,
+                           fullGeneHillClimbChance: Int,
+                           randomGene: Boolean,
+                           lastGene: Boolean)
 
 object GeneMappingConfig {
   val Default = GeneMapping(8, 16, 24, 32, 40, 48)
@@ -26,34 +32,44 @@ object GeneMappingConfig {
 }
 
 object PopulationConfig {
-  val Default = PopulationConfig(Population.Size, Population.EliteCount, 250, GeneMappingConfig.SmallRadius)
+  val Default = PopulationConfig(Population.Size, Population.EliteCount, 300, GeneMappingConfig.SmallRadius)
 
   val VecGen = PopulationConfig(Population.Size, Population.EliteCount, 1, GeneMappingConfig.Default)
 }
 
 object AlgorithmConfig {
   val Default = AlgorithmConfig(MutationConfig.Default, new RandomCrossoverPoint, ChromosomeOps.uniformCrossover)
+  val GaWithHillClimb = AlgorithmConfig(MutationConfig.GaWithHillClimb, new RandomCrossoverPoint, ChromosomeOps.uniformCrossover)
+  val GeneCrossover = AlgorithmConfig(MutationConfig.Default, new RandomCrossoverPoint, ChromosomeOps.genesCrossover)
 }
 
 object MutationConfig {
-  val Default = MutationConfig(chance = 5, strategy = new RandomMutationPoint, 1, 1)
+  val Default = MutationConfig(chance = 5, strategy = new RandomMutationPoint, 1, 4)
+  val GaWithHillClimb = MutationConfig(chance = 5, strategy = new RandomMutationPoint, 1, 3)
 }
 
 object HillClimb {
   val Default =
-    HillClimbConfig(active = true, slopeHeight = 0.001, slopeSize = 100, addGene = false, fullGeneHillClimbChange = 5)
+    HillClimbConfig(active = true,
+                    slopeHeight = 0.001,
+                    slopeSize = 200,
+                    addGene = false,
+                    fullGeneHillClimbChance = 5,
+                    randomGene = true,
+                    lastGene = false)
 
   val Off = Default.copy(active = false)
 
-  val VecGenLike = Default.copy(addGene = true, slopeHeight = 0.0001, slopeSize = 500)
+  val VecGenLike =
+    Default.copy(addGene = true, slopeHeight = 0.0001, slopeSize = 500, fullGeneHillClimbChance = 5, randomGene = false, lastGene = true)
 }
 
 object Config {
 
-  val VanillaGa = Config(PopulationConfig.Default, 255, AlgorithmConfig.Default, new WheelSelection, HillClimb.Off)
+  val VanillaGa = Config(PopulationConfig.Default, 220, AlgorithmConfig.Default, new WheelSelection, HillClimb.Off)
 
-  val GaWithHillClimb = Config(PopulationConfig.Default, 255, AlgorithmConfig.Default, new WheelSelection, HillClimb.Default)
+  val GaWithHillClimb = Config(PopulationConfig.Default, 255, AlgorithmConfig.GaWithHillClimb, new WheelSelection, HillClimb.Default)
 
-  val VecGenLike = Config(PopulationConfig.VecGen, 220, AlgorithmConfig.Default, new WheelSelection, HillClimb.VecGenLike)
+  val VecGenLike = Config(PopulationConfig.VecGen, 220, AlgorithmConfig.GeneCrossover, new WheelSelection, HillClimb.VecGenLike)
 
 }

@@ -95,18 +95,31 @@ package object conversions {
       "%08d".format(k.toBinaryString.toInt)
     }
 
+    def pow(i: Int): Int =
+      if (i == 4) 16 else if (i == 5) 32 else if (i == 6) 64 else if (i == 7) 128 else if (i == 8) 256 else 0
+
+    def toBits(value: Int, numberOfBits: Int): String = {
+      require(numberOfBits >= 4 && numberOfBits <= 8, "Number of bits " + numberOfBits)
+      val pow2 = pow(numberOfBits)
+      val k = (value + pow2) % pow2
+      val s = s"%0${numberOfBits}d"
+      s.format(k.toBinaryString.toInt)
+    }
+
     val t = geneMapping.toComponents(gene)
+    val s = geneMapping.sizes
 
     val u = for {
       i <- List(0, 4, -4)
       j <- List(0, 4, -4)
       k <- List(0, 4, -4)
-      l <- List(0, 10, -10)
-      m <- List(0, 10, -10)
-      n <- List(0, 10, -10)
+      l <- List(0, 31, -31)
+      m <- List(0, 31, -31)
+      n <- List(0, 31, -31)
     } yield (t._1 + i, t._2 + j, t._3 + k, t._4 + l, t._5 + m, t._6 + n)
 
-    val ii = u.map(e => to8bits(e._1) + to8bits(e._2) + to8bits(e._3) + to8bits(e._4) + to8bits(e._5) + to8bits(e._6))
+    val ii = u.map(e =>
+      toBits(e._1, s(0)) + toBits(e._2, s(1)) + toBits(e._3, s(2)) + toBits(e._4, s(3)) + toBits(e._5, s(4)) + toBits(e._6, s(5)))
     scala.concurrent.duration.Deadline
     ii.distinct.map(Gene(_))
 

@@ -88,8 +88,21 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
       var temp = state
       var newBest = temp.individuals.head
       while (continue) {
-        val start = if (Random.nextInt(100) < config.hillClimb.fullGeneHillClimbChange) 0 else Math.max(0, size - 1)
+        continue = false
+        val start =
+          if (Random.nextInt(100) < config.hillClimb.fullGeneHillClimbChance)
+            0
+          else {
+            if (config.hillClimb.lastGene)
+              Math.max(0, size - 1)
+            else
+              Random.nextInt(size)
+          }
 
+        if (start == 0)
+          log.debug("Full hillclimb started")
+        else
+          log.debug("Hill climb started")
         Range(start, size).map { gene =>
           var oldFitness = temp.bestIndividual.fitness
           temp = PopulationOps.hillClimb(temp, gene)
@@ -97,12 +110,11 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
             val newFitness = temp.bestIndividual.fitness
             updateUI(index, temp.bestIndividual, newFitness - oldFitness, oldFitness, 0)
             oldFitness = temp.bestIndividual.fitness
-            log.debug(s"Hill climb successful $newFitness")
-            continue = true
-          } else {
-            continue = false
+            log.debug(s"Hill climb successful $newFitness for gene $gene")
+            continue = continue || true
           }
         }
+
         newBest = temp.individuals.head
       }
 

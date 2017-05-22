@@ -4,7 +4,7 @@ import scala.collection.immutable.Seq
 
 case class Gene(binaryString: String) {
 
-  require(binaryString.split("").forall(s => s.equals("1") || s.equals("0")))
+  require(binaryString.split("").forall(s => s.equals("1") || s.equals("0")), "Binary string " + binaryString + " invalid")
 
   private def flip(s: Char) = if (s == '1') "0" else "1"
 
