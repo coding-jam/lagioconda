@@ -7,8 +7,16 @@ object Dependencies {
     val macWire = "2.3.0"
   }
 
-  lazy val frontend = common ++ webjars ++ logging ++ tests
+  lazy val frontend = common ++ webjars ++ logging ++ circe ++ tests
   lazy val backend = common ++ metrics ++ tests
+
+  val circeVersion = "0.8.0"
+
+  val circe = Seq(
+    "io.circe" %% "circe-core",
+    "io.circe" %% "circe-generic",
+    "io.circe" %% "circe-parser"
+  ).map(_ % circeVersion)
 
   val common = Seq(
     "com.typesafe.akka" %% "akka-actor" % Version.akka,

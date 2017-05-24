@@ -110,9 +110,9 @@ package object conversions {
     val s = geneMapping.sizes
 
     val u = for {
-      i <- List(0, 4, -4)
-      j <- List(0, 4, -4)
-      k <- List(0, 4, -4)
+      i <- List(0, 2, -2)
+      j <- List(0, 2, -2)
+      k <- List(0, 2, -2)
       l <- List(0, 31, -31)
       m <- List(0, 31, -31)
       n <- List(0, 31, -31)
