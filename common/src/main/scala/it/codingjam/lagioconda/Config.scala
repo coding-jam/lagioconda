@@ -34,7 +34,7 @@ case object GeneMappingConfig {
 case object PopulationConfig {
   val Default = PopulationConfig(size = Population.Size,
                                  eliteCount = Population.EliteCount,
-                                 numberOfGenes = 400,
+                                 numberOfGenes = 500,
                                  geneMapping = GeneMappingConfig.SmallRadius)
 
   val VecGen = PopulationConfig(size = Population.Size,
