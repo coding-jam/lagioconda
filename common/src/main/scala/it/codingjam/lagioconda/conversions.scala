@@ -65,7 +65,7 @@ package object conversions {
   def neigh(gene: Gene)(implicit geneMapping: GeneMapping): List[Gene] = {
 
     def to2bits(i: Int) = {
-      val k = (i + 4) % 4
+      val k = if (i < 0) 0 else if (i > 3) 3 else i
       "%05d".format(k.toBinaryString.toInt)
     }
 
@@ -96,7 +96,7 @@ package object conversions {
     }
 
     def pow(i: Int): Int =
-      if (i == 4) 16 else if (i == 5) 32 else if (i == 6) 64 else if (i == 7) 128 else if (i == 8) 256 else 0
+      if (i == 3) 8 else if (i == 4) 16 else if (i == 5) 32 else if (i == 6) 64 else if (i == 7) 128 else if (i == 8) 256 else 0
 
     def toBits(value: Int, numberOfBits: Int): String = {
       require(numberOfBits >= 4 && numberOfBits <= 8, "Number of bits " + numberOfBits)
@@ -110,10 +110,10 @@ package object conversions {
     val s = geneMapping.sizes
 
     val u = for {
-      i <- List(0, 3, -3)
-      j <- List(0, 3, -3)
-      k <- List(0, 3, -3)
-      l <- List(0, 31, -31, +63, -63)
+      i <- List(0, 2, -2)
+      j <- List(0, 2, -2)
+      k <- List(0, 2, -2)
+      l <- List(0, 31, -31)
       m <- List(0, 31, -31)
       n <- List(0, 31, -31)
     } yield (t._1 + i, t._2 + j, t._3 + k, t._4 + l, t._5 + m, t._6 + n)

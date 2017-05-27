@@ -32,10 +32,10 @@ case object GeneMappingConfig {
 }
 
 case object PopulationConfig {
-  val Default = PopulationConfig(size = Population.Size,
-                                 eliteCount = Population.EliteCount,
-                                 numberOfGenes = 500,
-                                 geneMapping = GeneMappingConfig.SmallRadius)
+  val Ga = PopulationConfig(size = Population.Size,
+                            eliteCount = Population.EliteCount,
+                            numberOfGenes = 150,
+                            geneMapping = GeneMappingConfig.SmallRadius)
 
   val VecGen = PopulationConfig(size = Population.Size,
                                 eliteCount = Population.EliteCount,
@@ -66,7 +66,7 @@ case object HillClimb {
                     slopeHeight = 0.0001,
                     slopeSize = 200,
                     addGene = false,
-                    fullGeneHillClimbChance = 5,
+                    fullGeneHillClimbChance = 0,
                     randomGene = true,
                     lastGene = false)
 
@@ -78,13 +78,13 @@ case object HillClimb {
 
 case object Config {
 
-  val VanillaGa = Config(population = PopulationConfig.Default,
-                         alpha = 220,
+  val VanillaGa = Config(population = PopulationConfig.Ga,
+                         alpha = 255,
                          algorithm = AlgorithmConfig.Default,
                          selection = new WheelSelection,
                          hillClimb = HillClimb.Off)
 
-  val GaWithHillClimb = Config(population = PopulationConfig.Default,
+  val GaWithHillClimb = Config(population = PopulationConfig.Ga,
                                alpha = 255,
                                algorithm = AlgorithmConfig.GaWithHillClimb,
                                selection = new WheelSelection,
