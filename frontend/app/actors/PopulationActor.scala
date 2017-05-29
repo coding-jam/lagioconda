@@ -13,7 +13,7 @@ import it.codingjam.lagioconda.conversions.ChromosomeToBufferedImage
 import it.codingjam.lagioconda.fitness.ByteComparisonFitness
 import it.codingjam.lagioconda.ga._
 import it.codingjam.lagioconda.population.{Individual, Population}
-import it.codingjam.lagioconda.{FitnessCalculator, ImageDimensions, PopulationOps}
+import it.codingjam.lagioconda.{FitnessCalculator, GeneMapping, ImageDimensions, PopulationOps}
 import org.apache.commons.codec.binary.Base64OutputStream
 import protocol.Messages.IndividualInfo
 
