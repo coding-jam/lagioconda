@@ -113,9 +113,9 @@ package object conversions {
       i <- List(0, 2, -2)
       j <- List(0, 2, -2)
       k <- List(0, 2, -2)
-      l <- List(0, 31, -31)
-      m <- List(0, 31, -31)
-      n <- List(0, 31, -31)
+      l <- List(0, 7, -7)
+      m <- List(0, 7, -7)
+      n <- List(0, 7, -7)
     } yield (t._1 + i, t._2 + j, t._3 + k, t._4 + l, t._5 + m, t._6 + n)
 
     val ii = u.map(e =>

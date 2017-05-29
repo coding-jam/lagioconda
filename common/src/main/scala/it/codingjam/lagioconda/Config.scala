@@ -34,7 +34,7 @@ case object GeneMappingConfig {
 case object PopulationConfig {
   val Ga = PopulationConfig(size = Population.Size,
                             eliteCount = Population.EliteCount,
-                            numberOfGenes = 150,
+                            numberOfGenes = 250,
                             geneMapping = GeneMappingConfig.SmallRadius)
 
   val VecGen = PopulationConfig(size = Population.Size,
@@ -91,7 +91,7 @@ case object Config {
                                hillClimb = HillClimb.Default)
 
   val VecGenLike = Config(population = PopulationConfig.VecGen,
-                          alpha = 220,
+                          alpha = 200,
                           algorithm = AlgorithmConfig.GeneCrossover,
                           selection = new WheelSelection,
                           hillClimb = HillClimb.VecGenLike)
