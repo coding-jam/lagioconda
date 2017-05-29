@@ -1,6 +1,7 @@
 import NativePackagerHelper._
 
 
+
 val commonSettings = Seq(
   organization := "it.codingjam",
   version := "0.0.1",
@@ -27,7 +28,7 @@ lazy val common = (project in file("common"))
       "openImaJ repo" at "http://maven.openimaj.org",
       "Semantic Desktop" at "http://aperture.sourceforge.net/maven"
     ),
-    libraryDependencies ++= Dependencies.openimaj ++ Dependencies.common ++ Dependencies.logging,
+    libraryDependencies ++= Dependencies.openimaj ++ Dependencies.common ++ Dependencies.logging ++ Dependencies.circe,
     commonSettings
   )
 

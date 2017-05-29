@@ -48,6 +48,7 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
 
   override def receive: Receive = {
     case cmd: PopulationActor.SetupPopulation =>
+      log.debug("Config {}", cmd.config)
       config = cmd.config
       fitnessCalculator = FitnessCalculator(service, fitness, dimension, cmd.config.alpha)
       state = PopulationOps.randomGeneration()
@@ -87,22 +88,38 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
       val size = state.bestIndividual.chromosome.genes.size
       var temp = state
       var newBest = temp.individuals.head
-      while (continue) {
-        val start = if (Random.nextInt(100) < config.hillClimb.fullGeneHillClimbChange) 0 else Math.max(0, size - 1)
 
-        Range(start, size).map { gene =>
+      val (range, full) =
+        if (Random.nextInt(100) < config.hillClimb.fullGeneHillClimbChance) {
+          log.debug("Full hill climb started")
+          ((0, size), true)
+        } else {
+          log.debug("Hill climb started")
+          if (config.hillClimb.lastGene)
+            ((Math.max(0, size - 1), size), false)
+          else {
+            val f = Random.nextInt(size)
+            ((f, f + 1), false)
+          }
+        }
+
+      while (continue) {
+        continue = false
+
+        Range(range._1, range._2).map { gene =>
           var oldFitness = temp.bestIndividual.fitness
           temp = PopulationOps.hillClimb(temp, gene)
           if (temp.bestIndividual.fitness > oldFitness) {
             val newFitness = temp.bestIndividual.fitness
             updateUI(index, temp.bestIndividual, newFitness - oldFitness, oldFitness, 0)
             oldFitness = temp.bestIndividual.fitness
-            log.debug(s"Hill climb successful $newFitness")
-            continue = true
-          } else {
-            continue = false
+            log.debug(s"Hill climb successful $newFitness for gene $gene")
+            continue = continue || true
           }
         }
+        if (full)
+          continue = false
+
         newBest = temp.individuals.head
       }
 

@@ -51,7 +51,7 @@ case class Population(generation: Int, individuals: List[Individual], hillClimbe
 
 object Population {
 
-  val Size = 20
+  val Size = 16
   val EliteCount = 4
   val MaxRotate = 500
 
