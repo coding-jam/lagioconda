@@ -1,8 +1,8 @@
 # LaGioconda
 
-##How to try
+## How to try
 
-This software requires Java as SBT. To install `sbt` follow instruction at http://www.scala-sbt.org/0.13/docs/Setup.html. 
+This software requires Java as SBT. To install `sbt` follow instruction at http://www.scala-sbt.org/0.13/docs/Setup.html.
 
 If you use OSX/MacOs, you can use HomeBrew:
 
@@ -23,5 +23,3 @@ Run each line in a new terminal.
 sbt "backend/run 2551"
 sbt "backend/run 2552"
 sbt "project frontend" run
- 
-
