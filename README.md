@@ -1,7 +1,5 @@
 # LaGioconda
 
----
-
 ## How to try
 
 This software requires Java as SBT. To install `sbt` follow instruction at http://www.scala-sbt.org/0.13/docs/Setup.html.
