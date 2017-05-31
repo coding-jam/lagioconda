@@ -61,11 +61,11 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
       val d = JavaDuration.between(startedAt, Instant.now)
       val u = List(d.getSeconds)
 
-      val rate = generationCounter.toDouble / maxPopulation.toDouble / d.getSeconds
+      val rate = formatRate(generationCounter.toDouble / maxPopulation.toDouble / d.getSeconds)
       oldGenerationCounter = generationCounter
       val output = List(
-        s"Current generation: ${generationCounter / maxPopulation}",
-        s"Rate: Generation/s = ${rate}",
+        s"Generation: ${generationCounter / maxPopulation}",
+        s"Generation/s = ${rate}",
         timeDifference()
       ).mkString("<br/>")
       out ! Statistics(output)
@@ -73,6 +73,8 @@ class SocketActor(out: ActorRef) extends Actor with ActorLogging {
     case other =>
       log.error(s"This must not happen $other")
   }
+
+  private def formatRate(d: Double) = f"$d%1.3f"
 
   def timeDifference(): String = {
     val d = JavaDuration.between(startedAt, Instant.now)

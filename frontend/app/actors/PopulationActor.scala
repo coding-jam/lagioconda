@@ -158,9 +158,10 @@ class PopulationActor(service: ActorSelection, out: ActorRef) extends Actor with
     val image = outputStream.toString("UTF-8")
 
     val message =
-      s"""Fit: ${formatFitness(best.fitness * 100)}%
-         |@ g: ${best.age}, reason ${best.generatedBy}, </b>
-         |genes: ${best.chromosome.genes.length}""".stripMargin
+      s"""Fitness: ${formatFitness(best.fitness * 100)}%  <br/>
+         |Generation: ${best.age} <br/>
+         |Reason: ${best.generatedBy} <br/>
+         |# genes: ${best.chromosome.genes.length}""".stripMargin
     log.debug(
       "Population {}, reason {}, old fitness {}, increment {}",
       populationIndex + "/" + best.age,

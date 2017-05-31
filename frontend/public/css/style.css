@@ -1,5 +1,5 @@
 body {
-  background-color: #000;
+  background-color: #1F1F1F;
   color: #fff;
   font-family: 'Open Sans', sans-serif;
 }
@@ -10,7 +10,6 @@ body {
 }
 
 #subtitle {
-  font-style: italic;
   padding-bottom: 0.8em;
 }
 
