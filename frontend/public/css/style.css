@@ -11,7 +11,10 @@ body {
 
 #subtitle {
   padding-bottom: 0.8em;
+  font-size: 20px;
 }
+
+
 
 /**Bootstrap cascading overrides**/
 .panel-body {
