@@ -1,0 +1,50 @@
+body {
+  background-color: #000;
+  color: #fff;
+  font-family: 'Open Sans', sans-serif;
+}
+
+#gioconda-header {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 600;
+}
+
+#subtitle {
+  font-style: italic;
+  padding-bottom: 0.8em;
+}
+
+/**Bootstrap cascading overrides**/
+.panel-body {
+  background-color: #222;
+}
+
+.btn-success {
+  background-color: #ddd;
+  color: #000;
+  border: 1px solid #fff;
+}
+
+.btn-success:hover {
+  background-color: #888;
+  color: #000;
+  border: 1px solid #fff;
+}
+/*end of Bootstrap cascading overrides*/
+
+.text-label {
+  padding: 1em;
+  text-align: center;
+  font-weight: 400;
+}
+
+.padded-right {
+  padding-right: 10px;
+}
+
+#statistics,
+#pop0,
+#pop1,
+#pop2 {
+  margin-top: 20px;
+}
