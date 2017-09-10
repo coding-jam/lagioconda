@@ -8,16 +8,6 @@ object ChromosomeOps {
 
   type CombineChromosome = (Chromosome, Chromosome, CrossoverPointLike) => Chromosome
 
-  val genesCrossover = (one: Chromosome, other: Chromosome, crossoverPoint: CrossoverPointLike) => {
-    val l: List[Gene] = one.genes
-      .zip(other.genes)
-      .map {
-        case (g1, g2) => g1.crossOver(g2)(crossoverPoint)
-      }
-
-    Chromosome(l, one.geneMapping)
-  }
-
   val uniformCrossover = (one: Chromosome, other: Chromosome, crossoverPoint: CrossoverPointLike) => {
     val l = one.genes
       .zip(other.genes)

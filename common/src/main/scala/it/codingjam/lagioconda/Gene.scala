@@ -8,16 +8,6 @@ case class Gene(binaryString: String) {
 
   private def flip(s: Char) = if (s == '1') "0" else "1"
 
-  def fullCrossOver(other: Gene)(implicit crossover: CrossoverPointLike): (Gene, Gene) = {
-    require(binaryString.length == other.binaryString.length)
-    val cp = crossover.crossoverPoint(binaryString.length)
-    val newGene1 = binaryString.substring(0, cp) + other.binaryString
-        .substring(cp)
-    val newGene2 = other.binaryString.substring(0, cp) + binaryString
-        .substring(cp)
-    (Gene(newGene1), Gene(newGene2))
-  }
-
   def crossOver(other: Gene)(implicit crossoverPoint: CrossoverPointLike): Gene = {
     require(binaryString.length == other.binaryString.length)
     val cp = crossoverPoint.crossoverPoint(binaryString.length)
@@ -59,7 +49,7 @@ case class Gene(binaryString: String) {
     Gene(mutated).unfold(5)
   }
 
-  def fold: Gene = {
+  private def fold: Gene = {
     val partition = binaryString.splitAt(binaryString.length / 2)
     val p: Seq[Char] = partition._1
     val q: Seq[Char] = partition._2.reverse
@@ -67,11 +57,11 @@ case class Gene(binaryString: String) {
     Gene(l)
   }
 
-  def fold(times: Int): Gene = if (times <= 0) this else fold.fold(times - 1)
+  private def fold(times: Int): Gene = if (times <= 0) this else fold.fold(times - 1)
 
-  def unfold(times: Int): Gene = if (times <= 0) this else unfold.unfold(times - 1)
+  private def unfold(times: Int): Gene = if (times <= 0) this else unfold.unfold(times - 1)
 
-  def unfold: Gene = {
+  private def unfold: Gene = {
     val p = binaryString.zipWithIndex.partition(_._2 % 2 == 0)
     val p1 = p._1.map(_._1)
     val p2 = p._2.map(_._1).reverse

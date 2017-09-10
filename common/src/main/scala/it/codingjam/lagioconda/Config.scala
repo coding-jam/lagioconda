@@ -51,8 +51,6 @@ case object AlgorithmConfig {
   val GaWithHillClimb = AlgorithmConfig(mutation = MutationConfig.GaWithHillClimb,
                                         crossoverPoint = new RandomCrossoverPoint,
                                         crossover = ChromosomeOps.uniformCrossover)
-  val GeneCrossover =
-    AlgorithmConfig(mutation = MutationConfig.Default, crossoverPoint = new RandomCrossoverPoint, crossover = ChromosomeOps.genesCrossover)
 }
 
 case object MutationConfig {
@@ -92,7 +90,7 @@ case object Config {
 
   val VecGenLike = Config(population = PopulationConfig.VecGen,
                           alpha = 200,
-                          algorithm = AlgorithmConfig.GeneCrossover,
+                          algorithm = AlgorithmConfig.Default,
                           selection = new WheelSelection,
                           hillClimb = HillClimb.VecGenLike)
 
